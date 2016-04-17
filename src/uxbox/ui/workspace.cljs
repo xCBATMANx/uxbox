@@ -103,7 +103,8 @@
         left-sidebar? (not (empty? (keep flags [:layers :sitemap
                                                 :document-history])))
         right-sidebar? (not (empty? (keep flags [:icons :drawtools
-                                                 :element-options])))
+                                                 :element-options
+                                                 :widgets])))
         local (:rum/local own)
         classes (classnames
                  :no-tool-bar-right (not right-sidebar?)

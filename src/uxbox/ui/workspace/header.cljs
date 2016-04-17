@@ -92,6 +92,11 @@
           :on-click (partial toggle :drawtools)}
          i/shapes]
         [:li.tooltip.tooltip-bottom
+         {:alt "Elements (Ctrl + Shift + E)"
+          :class (when (contains? flags :widgets) "selected")
+          :on-click (partial toggle :widgets)}
+         i/puzzle]
+        [:li.tooltip.tooltip-bottom
          {:alt "Icons (Ctrl + Shift + I)"
           :class (when (contains? flags :icons) "selected")
           :on-click (partial toggle :icons)}

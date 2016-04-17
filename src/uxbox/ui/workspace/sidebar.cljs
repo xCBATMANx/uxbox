@@ -19,7 +19,8 @@
             [uxbox.ui.workspace.sidebar.sitemap :refer (sitemap-toolbox)]
             [uxbox.ui.workspace.sidebar.history :refer (history-toolbox)]
             [uxbox.ui.workspace.sidebar.icons :refer (icons-toolbox)]
-            [uxbox.ui.workspace.sidebar.drawtools :refer (draw-toolbox)]))
+            [uxbox.ui.workspace.sidebar.drawtools :refer (draw-toolbox)]
+            [uxbox.ui.workspace.sidebar.widgets :refer (widgets-toolbox)]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Left Sidebar
@@ -56,6 +57,8 @@
       [:div.settings-bar-inside
        (when (contains? flags :drawtools)
          (draw-toolbox))
+       (when (contains? flags :widgets)
+         (widgets-toolbox))
        (when (contains? flags :element-options)
          (options-toolbox))
        (when (contains? flags :icons)
