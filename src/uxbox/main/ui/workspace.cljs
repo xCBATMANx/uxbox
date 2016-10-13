@@ -11,6 +11,9 @@
             [beicon.core :as rx]
             [uxbox.main.constants :as c]
             [uxbox.util.rstore :as rs]
+            ;; REMOVE THIS LINE
+            [uxbox.main.ui.icons :as i]
+            ;; REMOVE THIS LINE
             [uxbox.main.data.workspace :as dw]
             [uxbox.main.data.pages :as udp]
             [uxbox.main.data.history :as udh]
@@ -129,6 +132,30 @@
       (uum/messages)
 
       [:main.main-content
+
+      ;; WIDGET LIGHTBOX
+      [:div.lightbox
+       [:div.lightbox-body.export-dialog
+        [:h3 "Export options"]
+        [:div.row-flex
+         [:div.content-col
+          [:span.icon i/file-svg]
+          [:span.title "Export page"]
+          [:p.info "Download a single page of your project in SVG."]
+          [:select.input-select
+           [:option "hola mundo"]
+          [:a.btn-primary {:href "#"} "Export page"]]
+         [:div.content-col
+          [:span.icon i/folder-zip]
+          [:span.title "Export project"]
+          [:p.info "Download the whole project as a ZIP file."]
+          [:a.btn-primary {:href "#"} "Expor project"]]
+         [:div.content-col
+          [:span.icon i/file-html]
+          [:span.title "Export as HTML"]
+          [:p.info "Download your project as HTML files."]
+          [:a.btn-primary {:href "#"} "Export HTML"]]]
+        [:a.close {:href "#"} i/close]]]]
 
        [:section.workspace-content
         {:class classes
