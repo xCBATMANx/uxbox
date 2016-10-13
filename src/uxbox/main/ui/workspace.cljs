@@ -133,30 +133,6 @@
 
       [:main.main-content
 
-      ;; WIDGET LIGHTBOX
-      [:div.lightbox
-       [:div.lightbox-body.export-dialog
-        [:h3 "Export options"]
-        [:div.row-flex
-         [:div.content-col
-          [:span.icon i/file-svg]
-          [:span.title "Export page"]
-          [:p.info "Download a single page of your project in SVG."]
-          [:select.input-select
-           [:option "hola mundo"]
-          [:a.btn-primary {:href "#"} "Export page"]]
-         [:div.content-col
-          [:span.icon i/folder-zip]
-          [:span.title "Export project"]
-          [:p.info "Download the whole project as a ZIP file."]
-          [:a.btn-primary {:href "#"} "Expor project"]]
-         [:div.content-col
-          [:span.icon i/file-html]
-          [:span.title "Export as HTML"]
-          [:p.info "Download your project as HTML files."]
-          [:a.btn-primary {:href "#"} "Export HTML"]]]
-        [:a.close {:href "#"} i/close]]]]
-
        [:section.workspace-content
         {:class classes
          :on-scroll on-scroll

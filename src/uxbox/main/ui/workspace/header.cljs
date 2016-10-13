@@ -17,6 +17,7 @@
             [uxbox.main.data.lightbox :as udl]
             [uxbox.main.ui.workspace.clipboard]
             [uxbox.main.ui.workspace.settings]
+            [uxbox.main.ui.workspace.import-elements]
             [uxbox.main.ui.workspace.base :as wb]
             [uxbox.main.ui.icons :as i]
             [uxbox.main.ui.users :as ui.u]
@@ -80,6 +81,7 @@
         toggle #(rs/emit! (dw/toggle-flag %))
         on-undo #(rs/emit! (udh/backwards-to-previous-version))
         on-redo #(rs/emit! (udh/forward-to-next-version))
+        on-import-elements #(udl/open! :import-elements)
         on-image #(udl/open! :new-image)]
     (html
      [:header#workspace-bar.workspace-bar
@@ -138,6 +140,10 @@
          {:alt "Export (Ctrl + E)"
           :on-click on-download-clicked}
          i/export]
+         [:li.tooltip.tooltip-bottom
+          {:alt "Save icon/widget (Ctrl + W)"
+           :on-click on-import-elements}
+          i/puzzle]
         [:li.tooltip.tooltip-bottom
          {:alt "Image (Ctrl + I)"
           :on-click on-image}
