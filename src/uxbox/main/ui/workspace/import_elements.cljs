@@ -26,26 +26,30 @@
 (mx/defcs import-elements-dialog
   {:mixins [mx/static]}
   [own]
-  [:div.lightbox-body.export-dialog
-   [:h3 "Save icon | widget options"]
+  [:div.lightbox-body.import-elements
+   [:h3 "Save icon or widget"]
    [:div.row-flex
     [:div.content-col
-     [:span.icon i/file-svg]
-     [:span.title "Export page"]
-     [:p.info "Download a single page of your project in SVG."]
-     [:select.input-select {:ref "page" :default-value "Hola mundo"}
-      [:option {:value "Hola mundo 2"}]
-     [:a.btn-primary {:href "#"} "Export page"]]
-    [:div.content-col
-     [:span.icon i/folder-zip]
-     [:span.title "Export project"]
-     [:p.info "Download the whole project as a ZIP file."]
-     [:a.btn-primary {:href "#"} "Expor project"]]
-    [:div.content-col
-     [:span.icon i/file-html]
-     [:span.title "Export as HTML"]
-     [:p.info "Download your project as HTML files."]
-     [:a.btn-primary {:href "#"} "Export HTML"]]]
+     [:div.image-placeholder i/logo-icon]]
+    [:div.content-col.options
+     [:input.input-text {:type "text" :placeholder "New icon or widget name"}]
+     [:div.input-columns
+      [:div.input-radio.radio-primary
+       [:span "Save to"]
+       [:input {:type "radio" :id "save-to" :name "save-to" :value "project"}]
+       [:label {:for "save-to" :value "project"} "Current project"]
+       [:input {:type "radio" :id "save-to-2" :name "save-to-2" :value "Library"}]
+       [:label {:for "save-to-2" :value "Library"} "Library"]]
+      [:div.input-radio.radio-primary
+       [:span "Save from"]
+       [:input {:type "radio" :id "save-from" :name "save-from" :value "page"}]
+       [:label {:for "save-from" :value "page"} "Whole page"]
+       [:input {:type "radio" :id "save-from-2" :name "save-from-2" :value "selection"}]
+       [:label {:for "save-from-2" :value "selection"} "Selection"]]]
+       [:select.input-select {:ref "library" :default-value "Choose a library"}
+       [:option {:value "Library 1"}]
+       [:option {:value "Library 2"}]]
+     [:a.btn-primary {:href "#"} "Save it!"]]
    [:a.close {:href "#"} i/close]]])
 
 (defmethod lbx/render-lightbox :import-elements

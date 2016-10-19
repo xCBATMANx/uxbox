@@ -99,8 +99,8 @@
       min-width: 120px;
     }
 
-    // Export dialog
-    &.export-dialog {
+    &.export-dialog,
+    &.import-elements {
       width: auto;
     }
 
@@ -263,6 +263,46 @@
 
   .btn-primary {
     margin-top: auto !important;
+  }
+
+}
+// import-elements-dialog
+.import-elements {
+
+
+  .content-col {
+    min-width: 300px;
+
+    &.options {
+      border: none;
+      min-width: 400px;
+    }
+
+
+    .image-placeholder {
+      max-height: 300px;
+    }
+
+  }
+
+}
+
+.input-columns {
+  display: flex;
+  width: 100%;
+
+  .input-radio {
+    align-items: flex-start;
+    flex-direction: column;
+    flex-shrink: 0;
+    flex: 1;
+
+    span {
+      color: $color-gray-darker;
+      font-size: $fs13;
+      margin-bottom: $small;
+    }
+
   }
 
 }
