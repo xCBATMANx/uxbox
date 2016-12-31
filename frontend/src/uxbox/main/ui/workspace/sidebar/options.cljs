@@ -20,7 +20,6 @@
    [uxbox.main.ui.workspace.sidebar.options.icon-measures :as options-iconm]
    [uxbox.main.ui.workspace.sidebar.options.circle-measures :as options-circlem]
    [uxbox.main.ui.workspace.sidebar.options.rect-measures :as options-rectm]
-   [uxbox.main.ui.workspace.sidebar.options.line-measures :as options-linem]
    [uxbox.main.ui.workspace.sidebar.options.fill :as options-fill]
    [uxbox.main.ui.workspace.sidebar.options.text :as options-text]
    [uxbox.main.ui.workspace.sidebar.options.stroke :as options-stroke]
@@ -35,12 +34,11 @@
 (def ^:private +menus-map+
   {:icon [::icon-measures ::fill ::stroke ::interactions]
    :rect [::rect-measures ::fill ::stroke ::interactions]
-   :line [::line-measures ::stroke ::interactions]
    :path [::fill ::stroke ::interactions]
    :circle [::circle-measures ::fill ::stroke ::interactions]
    :text [::fill ::text ::interactions]
    :image [::interactions]
-   :group [::interactions]
+   :group [::fill ::stroke ::interactions]
    ::page [::page-measures ::page-grid-options]})
 
 (def ^:private +menus+
@@ -52,10 +50,6 @@
     :id ::rect-measures
     :icon i/infocard
     :comp options-rectm/rect-measures-menu}
-   {:name "Size, position & rotation"
-    :id ::line-measures
-    :icon i/infocard
-    :comp options-linem/line-measures-menu}
    {:name "Size, position & rotation"
     :id ::circle-measures
     :icon i/infocard

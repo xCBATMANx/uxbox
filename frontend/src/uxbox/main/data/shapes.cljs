@@ -90,17 +90,17 @@
              (rx/map (fn [{:keys [x y] :as pt}]
                        (apply-temporal-displacement id (gpt/subtract pt point1)))))))))
 
-(defn update-line-attrs
-  [sid {:keys [x1 y1 x2 y2] :as opts}]
-  (reify
-    udp/IPageUpdate
-    ptk/UpdateEvent
-    (update [_ state]
-      (let [shape (get-in state [:shapes sid])
-            props (select-keys opts [:x1 :y1 :x2 :y2])
-            props' (select-keys shape [:x1 :y1 :x2 :y2])]
-        (update-in state [:shapes sid] geom/setup
-                   (merge props' props))))))
+;; (defn update-line-attrs
+;;   [sid {:keys [x1 y1 x2 y2] :as opts}]
+;;   (reify
+;;     udp/IPageUpdate
+;;     ptk/UpdateEvent
+;;     (update [_ state]
+;;       (let [shape (get-in state [:shapes sid])
+;;             props (select-keys opts [:x1 :y1 :x2 :y2])
+;;             props' (select-keys shape [:x1 :y1 :x2 :y2])]
+;;         (update-in state [:shapes sid] geom/setup
+;;                    (merge props' props))))))
 
 (defn update-rotation
   [sid rotation]
@@ -236,57 +236,136 @@
     (update [_ state]
       (assoc-in state [:shapes sid :content] content))))
 
-(defn update-fill-attrs
-  [sid {:keys [color opacity] :as opts}]
-  (reify
-    udp/IPageUpdate
-    ptk/UpdateEvent
-    (update [_ state]
-      (update-in state [:shapes sid]
-                 merge
-                 (when color {:fill color})
-                 (when opacity {:fill-opacity opacity})))))
+;; --- Update Shape Fill Attributes
 
-(defn update-font-attrs
-  [sid {:keys [family style weight size align
-               letter-spacing line-height] :as opts}]
-  (reify
-    udp/IPageUpdate
-    ptk/UpdateEvent
-    (update [_ state]
-      (update-in state [:shapes sid :font]
-                 merge
-                 (when line-height {:line-height line-height})
-                 (when letter-spacing {:letter-spacing letter-spacing})
-                 (when align {:align align})
-                 (when family {:family family})
-                 (when style {:style style})
-                 (when weight {:weight weight})
-                 (when size {:size size})))))
+;; (declare update-fill-attrs)
 
-(defn update-stroke-attrs
-  [sid {:keys [color opacity type width] :as opts}]
-  (reify
-    udp/IPageUpdate
-    ptk/UpdateEvent
-    (update [_ state]
-      (update-in state [:shapes sid]
-                 merge
-                 (when type {:stroke-type type})
-                 (when width {:stroke-width width})
-                 (when color {:stroke color})
-                 (when opacity {:stroke-opacity opacity})))))
+;; (deftype UpdateFillAttrs [id attrs]
+;;   udp/IPageUpdate
+;;   ptk/WatchEvent
+;;   (watch [_ state stream]
+;;     (let [{:keys [type] :as shape} (get-in state [:shapes id])
+;;           {:keys [color opacity]} attrs]
+;;       (if (= type :group)
+;;         (rx/from-coll (map #(update-fill-attrs % attrs) (:items shape)))
+;;         (rx/of #(update-in % [:shapes id] merge
+;;                            (when color {:fill color})
+;;                            (when opacity {:fill-opacity opacity})))))))
 
-(defn update-radius-attrs
-  [sid {:keys [rx ry] :as opts}]
-  (reify
-    udp/IPageUpdate
-    ptk/UpdateEvent
-    (update [_ state]
-      (update-in state [:shapes sid]
-                 merge
-                 (when rx {:rx rx})
-                 (when ry {:ry ry})))))
+;; (s/def ::color us/color?)
+;; (s/def ::opacity number?)
+
+;; (s/def ::fill-attrs (s/keys :req-un [::color ::opacity]))
+
+;; (defn update-fill-attrs
+;;   [id attrs]
+;;   {:pre [(uuid? id) (us/valid? ::fill-attrs attrs)]}
+;;   (UpdateFillAttrs. id (us/extract attrs ::fill-attrs)))
+
+;; --- Update Shape Attrs
+
+
+(declare UpdateAttrs)
+
+(deftype UpdateAttrs [id attrs]
+  ptk/WatchEvent
+  (watch [_ state stream]
+    (println "update-attrs" id attrs)
+    (let [{:keys [type] :as shape} (get-in state [:shapes id])]
+      (if (= type :group)
+        (rx/from-coll (map #(UpdateAttrs. % attrs) (:items shape)))
+        (rx/of #(update-in % [:shapes id] merge attrs))))))
+
+(s/def ::fill-color us/color?)
+(s/def ::fill-opacity number?)
+(s/def ::line-height number?)
+(s/def ::letter-spacing number?)
+(s/def ::text-align #{"left" "right" "center" "justify"})
+(s/def ::font-family string?)
+(s/def ::font-style string?)
+(s/def ::font-weight string?)
+(s/def ::font-size number?)
+(s/def ::stroke-style #{:none :solid :dotted :dashed :mixed})
+(s/def ::stroke-width number?)
+(s/def ::stroke-color us/color?)
+(s/def ::stroke-opacity number?)
+(s/def ::rx number?)
+(s/def ::ry number?)
+(s/def ::proportion number?)
+(s/def ::proportion-lock boolean?)
+(s/def ::collapsed boolean?)
+(s/def ::hidden boolean?)
+(s/def ::blocked boolean?)
+(s/def ::locked boolean?)
+
+(s/def ::shape-attrs
+  (s/keys :opt-un [::fill-color
+                   ::fill-opacity
+                   ::line-height
+                   ::letter-spacing
+                   ::text-align
+                   ::font-family
+                   ::font-style
+                   ::font-weight
+                   ::font-size
+                   ::stroke-style
+                   ::stroke-width
+                   ::stroke-color
+                   ::stroke-opacity
+                   ::rx ::ry
+                   ::proportion-lock
+                   ::proportion
+                   ::collapsed
+                   ::hidden
+                   ::blocked
+                   ::locked]))
+
+(defn update-attrs
+  [id attrs]
+  {:pre [(uuid? id) (us/valid? ::shape-attrs attrs)]}
+  (let [atts (us/extract attrs ::shape-attrs)]
+    (UpdateAttrs. id attrs)))
+
+;; (defn update-font-attrs
+;;   [sid {:keys [family style weight size align
+;;                letter-spacing line-height] :as opts}]
+;;   (reify
+;;     udp/IPageUpdate
+;;     ptk/UpdateEvent
+;;     (update [_ state]
+;;       (update-in state [:shapes sid :font]
+;;                  merge
+;;                  (when line-height {:line-height line-height})
+;;                  (when letter-spacing {:letter-spacing letter-spacing})
+;;                  (when align {:align align})
+;;                  (when family {:family family})
+;;                  (when style {:style style})
+;;                  (when weight {:weight weight})
+;;                  (when size {:size size})))))
+
+;; (defn update-stroke-attrs
+;;   [sid {:keys [color opacity type width] :as opts}]
+;;   (reify
+;;     udp/IPageUpdate
+;;     ptk/UpdateEvent
+;;     (update [_ state]
+;;       (update-in state [:shapes sid]
+;;                  merge
+;;                  (when type {:stroke-type type})
+;;                  (when width {:stroke-width width})
+;;                  (when color {:stroke color})
+;;                  (when opacity {:stroke-opacity opacity})))))
+
+;; (defn update-radius-attrs
+;;   [sid {:keys [rx ry] :as opts}]
+;;   (reify
+;;     udp/IPageUpdate
+;;     ptk/UpdateEvent
+;;     (update [_ state]
+;;       (update-in state [:shapes sid]
+;;                  merge
+;;                  (when rx {:rx rx})
+;;                  (when ry {:ry ry})))))
 
 ;; --- Shape Proportions
 
@@ -629,27 +708,38 @@
         (rx/from-coll
          (into [(deselect-all)] (map #(delete-shape %) selected)))))))
 
-(defn update-selected-shapes-fill
-  "Update the fill related attributed on
-  selected shapes."
-  [opts]
-  (reify
-    ptk/WatchEvent
-    (watch [_ state stream]
-      (->> (get-in state [:workspace :selected])
-           (map #(update-fill-attrs % opts))
-           (rx/from-coll)))))
+;; (defn update-selected-shapes-fill
+;;   "Update the fill related attributed on
+;;   selected shapes."
+;;   [opts]
+;;   (reify
+;;     ptk/WatchEvent
+;;     (watch [_ state stream]
+;;       (->> (get-in state [:workspace :selected])
+;;            (map #(update-fill-attrs % opts))
+;;            (rx/from-coll)))))
 
-(defn update-selected-shapes-stroke
-  "Update the fill related attributed on
-  selected shapes."
-  [opts]
-  (reify
-    ptk/WatchEvent
-    (watch [_ state s]
-      (rx/from-coll
-       (->> (get-in state [:workspace :selected])
-            (map #(update-stroke-attrs % opts)))))))
+;; (defn update-selected-shapes-stroke
+;;   "Update the fill related attributed on
+;;   selected shapes."
+;;   [opts]
+;;   (reify
+;;     ptk/WatchEvent
+;;     (watch [_ state s]
+;;       (rx/from-coll
+;;        (->> (get-in state [:workspace :selected])
+;;             (map #(update-stroke-attrs % opts)))))))
+
+(deftype UpdateSelectedShapesAttrs [attrs]
+  ptk/WatchEvent
+  (watch [_ state stream]
+    (let [xf (map #(update-attrs % attrs))]
+      (rx/from-coll (sequence xf (get-in state [:workspace :selected]))))))
+
+(defn update-selected-shapes-attrs
+  [attrs]
+  {:pre [(us/valid? ::shape-attrs attrs)]}
+  (UpdateSelectedShapesAttrs. attrs))
 
 ;; --- Move Selected Layer
 
