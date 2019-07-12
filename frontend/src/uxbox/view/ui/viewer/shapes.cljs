@@ -36,7 +36,7 @@
 (defn- interactions-wrapper-did-mount
   [own]
   (let [dom (mx/dom-node own)
-        shape (first (:rum/args own))
+        shape (first (::mx/args own))
         evnts (itx/build-events shape)
         keys (reduce (fn [acc [evt callback]]
                        (conj acc (events/listen dom evt callback)))
@@ -82,7 +82,7 @@
 (mx/defc image-shape-wrapper
   {:mixins [mx/static mx/reactive]
    :will-mount (fn [own]
-                 (when-let [image-id (-> own :rum/args first :image)]
+                 (when-let [image-id (-> own ::mx/args first :image)]
                    (st/emit! (udv/fetch-image image-id)))
                  own)}
   [{:keys [image] :as item}]

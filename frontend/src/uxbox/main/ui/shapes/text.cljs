@@ -106,7 +106,7 @@
 
 (defn- text-shape-edit-did-mount
   [own]
-  (let [[shape] (:rum/args own)
+  (let [[shape] (::mx/args own)
         dom (mx/ref-node own "container")]
     (set! (.-textContent dom) (:content shape ""))
     (.focus dom)
@@ -140,7 +140,7 @@
 
 (defn text-shape-wrapper-did-mount
   [own]
-  (let [[shape] (:rum/args own)
+  (let [[shape] (::mx/args own)
         dom (mx/ref-node own "fobject")
         html (dom/render-to-html (text-shape-html shape))]
     (set! (.-innerHTML dom) html))
@@ -148,8 +148,8 @@
 
 (defn text-shape-wrapper-did-remount
   [old own]
-  (let [[old-shape] (:rum/args old)
-        [shape] (:rum/args own)]
+  (let [[old-shape] (::mx/args old)
+        [shape] (::mx/args own)]
     (when (not= shape old-shape)
       (let [dom (mx/ref-node own "fobject")
             html (dom/render-to-html (text-shape-html shape))]

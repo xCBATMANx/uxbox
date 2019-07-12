@@ -77,14 +77,14 @@
 
 (defn- history-toolbox-will-mount
   [own]
-  (let [[page-id] (:rum/args own)]
+  (let [[page-id] (::mx/args own)]
     (st/emit! (udh/initialize page-id))
     own))
 
 (defn- history-toolbox-did-remount
   [oldown own]
-  (let [[old-page-id] (:rum/args oldown)
-        [new-page-id] (:rum/args own)]
+  (let [[old-page-id] (::mx/args oldown)
+        [new-page-id] (::mx/args own)]
     (when-not (= old-page-id new-page-id)
       (st/emit! ::udh/stop-changes-watcher
                 (udh/initialize new-page-id)))

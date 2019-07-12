@@ -33,14 +33,14 @@
 
 (defn- viewer-page-will-mount
   [own]
-  (let [[token] (:rum/args own)]
+  (let [[token] (::mx/args own)]
     (st/emit! (dv/initialize token))
     own))
 
 (defn- viewer-page-did-remount
   [oldown own]
-  (let [[old-token] (:rum/args oldown)
-        [new-token] (:rum/args own)]
+  (let [[old-token] (::mx/args oldown)
+        [new-token] (::mx/args own)]
     (when (not= old-token new-token)
       (st/emit! (dv/initialize new-token)))
     own))

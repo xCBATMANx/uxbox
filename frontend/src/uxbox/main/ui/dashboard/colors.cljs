@@ -300,14 +300,14 @@
 
 (defn- colors-page-will-mount
   [own]
-  (let [[type id] (:rum/args own)]
+  (let [[type id] (::mx/args own)]
     (st/emit! (dc/initialize type id))
     own))
 
 (defn- colors-page-did-remount
   [old-own own]
-  (let [[old-type old-id] (:rum/args old-own)
-        [new-type new-id] (:rum/args own)]
+  (let [[old-type old-id] (::mx/args old-own)
+        [new-type new-id] (::mx/args own)]
     (when (or (not= old-type new-type)
               (not= old-id new-id))
       (st/emit! (dc/initialize new-type new-id)))

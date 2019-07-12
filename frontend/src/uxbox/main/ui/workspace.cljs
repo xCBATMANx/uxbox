@@ -39,13 +39,13 @@
 
 (defn- workspace-will-mount
   [own]
-  (let [[projectid pageid] (:rum/args own)]
+  (let [[projectid pageid] (::mx/args own)]
     (st/emit! (dw/initialize projectid pageid))
     own))
 
 (defn- workspace-did-mount
   [own]
-  (let [[projectid pageid] (:rum/args own)
+  (let [[projectid pageid] (::mx/args own)
         dom (mx/ref-node own "workspace-canvas")
         scroll-to-page-center #(scroll/scroll-to-page-center dom @refs/selected-page)
         sub (rx/subscribe streams/page-id-ref-s scroll-to-page-center)]
@@ -65,8 +65,8 @@
 
 (defn- workspace-did-remount
   [old-state state]
-  (let [[projectid pageid] (:rum/args state)
-        [oldprojectid oldpageid] (:rum/args old-state)]
+  (let [[projectid pageid] (::mx/args state)
+        [oldprojectid oldpageid] (::mx/args old-state)]
     (when (not= pageid oldpageid)
       (st/emit! (dw/initialize projectid pageid)
                 ::udp/stop-page-watcher
