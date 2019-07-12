@@ -6,21 +6,22 @@
 ;; Copyright (c) 2015-2016 Juan de la Cruz <delacruzgarciajuan@gmail.com>
 
 (ns uxbox.main.ui.dashboard.images
-  (:require [cuerdas.core :as str]
-            [lentes.core :as l]
-            [rumext.core :as mx :include-macros true]
-            [uxbox.util.i18n :as t :refer [tr]]
-            [uxbox.main.store :as st]
-            [uxbox.main.data.lightbox :as udl]
-            [uxbox.main.data.images :as di]
-            [uxbox.builtins.icons :as i]
-            [uxbox.main.ui.lightbox :as lbx]
-            [uxbox.main.ui.keyboard :as kbd]
-            [uxbox.main.ui.dashboard.header :refer [header]]
-            [uxbox.util.router :as rt]
-            [uxbox.util.time :as dt]
-            [uxbox.util.data :refer [read-string jscoll->vec]]
-            [uxbox.util.dom :as dom]))
+  (:require
+   [cuerdas.core :as str]
+   [lentes.core :as l]
+   [rumext.core :as mx :include-macros true]
+   [uxbox.builtins.icons :as i]
+   [uxbox.main.data.images :as di]
+   [uxbox.main.data.lightbox :as udl]
+   [uxbox.main.store :as st]
+   [uxbox.main.ui.dashboard.header :refer [header]]
+   [uxbox.main.ui.keyboard :as kbd]
+   [uxbox.main.ui.lightbox :as lbx]
+   [uxbox.util.data :refer [read-string jscoll->vec]]
+   [uxbox.util.dom :as dom]
+   [uxbox.util.i18n :as t :refer [tr]]
+   [uxbox.util.router :as rt]
+   [uxbox.util.time :as dt]))
 
 ;; --- Helpers & Constants
 
@@ -69,7 +70,7 @@
 (mx/defcs page-title
   {:mixins [(mx/local {}) mx/static mx/reactive]}
   [own {:keys [id] :as coll}]
-  (let [local (:rum/local own)
+  (let [local (::mx/local own)
         dashboard (mx/react dashboard-ref)
         own? (= :own (:type coll))
         edit? (:edit @local)]
@@ -439,14 +440,14 @@
 
 (defn- images-page-will-mount
   [own]
-  (let [[type id] (:rum/args own)]
+  (let [[type id] (::mx/args own)]
     (st/emit! (di/initialize type id))
     own))
 
 (defn- images-page-did-remount
   [old-own own]
-  (let [[old-type old-id] (:rum/args old-own)
-        [new-type new-id] (:rum/args own)]
+  (let [[old-type old-id] (:mx/args old-own)
+        [new-type new-id] (:mx/args own)]
     (when (or (not= old-type new-type)
               (not= old-id new-id))
       (st/emit! (di/initialize new-type new-id)))

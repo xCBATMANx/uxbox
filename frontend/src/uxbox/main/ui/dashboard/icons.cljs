@@ -2,30 +2,31 @@
 ;; License, v. 2.0. If a copy of the MPL was not distributed with this
 ;; file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ;;
-;; Copyright (c) 2015-2016 Andrey Antukh <niwi@niwi.nz>
 ;; Copyright (c) 2015-2016 Juan de la Cruz <delacruzgarciajuan@gmail.com>
+;; Copyright (c) 2015-2019 Andrey Antukh <niwi@niwi.nz>
 
 (ns uxbox.main.ui.dashboard.icons
-  (:require [lentes.core :as l]
-            [cuerdas.core :as str]
-            [uxbox.main.store :as st]
-            [uxbox.main.data.lightbox :as udl]
-            [uxbox.main.data.icons :as di]
-            [uxbox.builtins.icons :as i]
-            [uxbox.main.ui.shapes.icon :as icon]
-            [uxbox.main.ui.lightbox :as lbx]
-            [uxbox.main.ui.dashboard.header :refer (header)]
-            [uxbox.main.ui.keyboard :as kbd]
-            [uxbox.util.router :as rt]
-            [uxbox.util.i18n :as t :refer (tr)]
-            [uxbox.util.data :refer (read-string)]
-            [rumext.core :as mx :include-macros true]
-            [uxbox.util.time :as dt]
-            [potok.core :as ptk]
-            [uxbox.util.forms :as sc]
-            [uxbox.util.lens :as ul]
-            [uxbox.util.i18n :refer (tr)]
-            [uxbox.util.dom :as dom]))
+  (:require
+   [cuerdas.core :as str]
+   [lentes.core :as l]
+   [potok.core :as ptk]
+   [rumext.core :as mx :include-macros true]
+   [uxbox.builtins.icons :as i]
+   [uxbox.main.data.icons :as di]
+   [uxbox.main.data.lightbox :as udl]
+   [uxbox.main.store :as st]
+   [uxbox.main.ui.dashboard.header :refer (header)]
+   [uxbox.main.ui.keyboard :as kbd]
+   [uxbox.main.ui.lightbox :as lbx]
+   [uxbox.main.ui.shapes.icon :as icon]
+   [uxbox.util.data :refer (read-string)]
+   [uxbox.util.dom :as dom]
+   [uxbox.util.forms :as sc]
+   [uxbox.util.i18n :as t :refer (tr)]
+   [uxbox.util.i18n :refer (tr)]
+   [uxbox.util.lens :as ul]
+   [uxbox.util.router :as rt]
+   [uxbox.util.time :as dt]))
 
 ;; --- Helpers & Constants
 
@@ -133,7 +134,7 @@
   [own {:keys [id type name num-icons] :as coll} selected?]
   (let [num-icons (or num-icons (react-count-icons id))
         editable? (= type :own)
-        local (:rum/local own)]
+        local (::mx/local own)]
     (letfn [(on-click [event]
               (let [type (or type :own)]
                 (st/emit! (rt/navigate :dashboard/icons {} {:type type :id id}))))
@@ -261,7 +262,7 @@
   {:mixins [(mx/local) mx/static]}
   [own {:keys [type id] :as coll} selected]
   (let [editable? (or (= type :own) (nil? coll))
-        local (:rum/local own)]
+        local (::mx/local own)]
     (letfn [(delete []
               (st/emit! (di/delete-selected)))
             (on-delete [event]
@@ -448,14 +449,14 @@
 
 (defn- icons-page-will-mount
   [own]
-  (let [[type id] (:rum/args own)]
+  (let [[type id] (::mx/args own)]
     (st/emit! (di/initialize type id))
     own))
 
 (defn- icons-page-did-remount
   [old-own own]
-  (let [[old-type old-id] (:rum/args old-own)
-        [new-type new-id] (:rum/args own)]
+  (let [[old-type old-id] (::mx/args old-own)
+        [new-type new-id] (::mx/args own)]
     (when (or (not= old-type new-type)
               (not= old-id new-id))
       (st/emit! (di/initialize new-type new-id)))

@@ -2,24 +2,25 @@
 ;; License, v. 2.0. If a copy of the MPL was not distributed with this
 ;; file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ;;
-;; Copyright (c) 2015-2017 Andrey Antukh <niwi@niwi.nz>
 ;; Copyright (c) 2015-2017 Juan de la Cruz <delacruzgarciajuan@gmail.com>
+;; Copyright (c) 2015-2019 Andrey Antukh <niwi@niwi.nz>
 
 (ns uxbox.main.ui.workspace.images
-  (:require [lentes.core :as l]
-            [rumext.core :as mx :include-macros true]
-            [potok.core :as ptk]
-            [uxbox.builtins.icons :as i]
-            [uxbox.main.store :as st]
-            [uxbox.main.data.lightbox :as udl]
-            [uxbox.main.data.images :as udi]
-            [uxbox.main.data.workspace :as udw]
-            [uxbox.main.data.shapes :as uds]
-            [uxbox.main.ui.lightbox :as lbx]
-            [uxbox.util.i18n :as t :refer [tr]]
-            [uxbox.util.data :refer [read-string jscoll->vec]]
-            [uxbox.util.dom :as dom]
-            [uxbox.util.uuid :as uuid]))
+  (:require
+   [lentes.core :as l]
+   [potok.core :as ptk]
+   [rumext.core :as mx :include-macros true]
+   [uxbox.builtins.icons :as i]
+   [uxbox.main.data.images :as udi]
+   [uxbox.main.data.lightbox :as udl]
+   [uxbox.main.data.shapes :as uds]
+   [uxbox.main.data.workspace :as udw]
+   [uxbox.main.store :as st]
+   [uxbox.main.ui.lightbox :as lbx]
+   [uxbox.util.data :refer [read-string jscoll->vec]]
+   [uxbox.util.dom :as dom]
+   [uxbox.util.i18n :as t :refer [tr]]
+   [uxbox.util.uuid :as uuid]))
 
 ;; --- Refs
 
@@ -115,7 +116,7 @@
 
 (defn will-mount
   [own]
-  (let [local (:rum/local own)]
+  (let [local (::mx/local own)]
     (st/emit! (udi/fetch-collections))
     (st/emit! (udi/fetch-images nil))
     (add-watch local ::key (fn [_ _ _ v]
@@ -124,7 +125,7 @@
 
 (defn will-unmount
   [own]
-  (let [local (:rum/local own)]
+  (let [local (::mx/local own)]
     (remove-watch local ::key)
     own))
 
@@ -133,7 +134,7 @@
    :will-mount will-mount
    :will-unmount will-unmount}
   [own]
-  (let [local (:rum/local own)
+  (let [local (::mx/local own)
         id (:id @local)
         type (:type @local :own)
         own? (= type :own)
