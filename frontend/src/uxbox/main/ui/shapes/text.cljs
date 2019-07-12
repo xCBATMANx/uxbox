@@ -146,19 +146,9 @@
     (set! (.-innerHTML dom) html))
     own)
 
-(defn text-shape-wrapper-did-remount
-  [old own]
-  (let [[old-shape] (::mx/args old)
-        [shape] (::mx/args own)]
-    (when (not= shape old-shape)
-      (let [dom (mx/ref-node own "fobject")
-            html (dom/render-to-html (text-shape-html shape))]
-        (set! (.-innerHTML dom) html)))
-    own))
-
 (mx/defc text-shape-wrapper
   {:did-mount text-shape-wrapper-did-mount
-   :did-remount text-shape-wrapper-did-remount}
+   :key-fn #(pr-str %1)}
   [{:keys [id modifiers] :as shape}]
   (let [{:keys [displacement resize]} modifiers
         xfmt (cond-> (gmt/matrix)
@@ -188,7 +178,7 @@
 (mx/defc text-shape
   {:mixins [mx/static]
    :did-mount text-shape-wrapper-did-mount
-   :did-remount text-shape-wrapper-did-remount}
+   :key-fn #(pr-str %1)}
   [{:keys [id content modifiers] :as shape}]
   (let [{:keys [displacement resize]} modifiers
         xfmt (cond-> (gmt/matrix)

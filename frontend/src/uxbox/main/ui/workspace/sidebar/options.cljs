@@ -89,18 +89,10 @@
 
 ;; --- Options
 
-(defn- options-did-remount
-  [old-own own]
-  (let [[prev-shape] (::mx/args old-own)
-        [curr-shape] (::mx/args own)]
-    (when-not (= (:id prev-shape) (:id curr-shape))
-      (reset! (::mx/local own) {}))
-    own))
-
 (mx/defcs options
   {:mixins [mx/static (mx/local)]
-   :did-remount options-did-remount}
-  [{:keys [rum/local] :as own} shape]
+   :key-fn #(pr-str (:id %1))}
+  [{:keys [::mx/local] :as own} shape]
   (let [menus (get +menus-map+ (:type shape ::page))
         contained-in? (into #{} menus)
         active (:menu @local (first menus))]

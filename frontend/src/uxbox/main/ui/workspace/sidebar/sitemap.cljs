@@ -26,7 +26,7 @@
 
 (mx/defcs page-item
   {:mixins [(mx/local) mx/static mx/reactive]}
-  [{:keys [rum/local] :as own} page total active?]
+  [{:keys [::mx/local] :as own} page total active?]
   (let [body-classes (classnames
                       :selected active?
                       :drag-active (:dragging @local)

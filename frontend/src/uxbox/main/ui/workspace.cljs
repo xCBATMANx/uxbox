@@ -63,17 +63,6 @@
   (rx/cancel! (::sub own))
   (dissoc own ::sub))
 
-(defn- workspace-did-remount
-  [old-state state]
-  (let [[projectid pageid] (::mx/args state)
-        [oldprojectid oldpageid] (::mx/args old-state)]
-    (when (not= pageid oldpageid)
-      (st/emit! (dw/initialize projectid pageid)
-                ::udp/stop-page-watcher
-                (udp/watch-page-changes pageid)
-                (udu/watch-page-changes pageid)))
-    state))
-
 (defn- on-scroll
   [event]
   (let [target (.-target event)
@@ -100,8 +89,8 @@
       (l/derive refs/workspace)))
 
 (mx/defcs workspace
-  {:did-remount workspace-did-remount
-   :init workspace-init
+  {:init workspace-init
+   :key-fn vector
    :will-unmount workspace-will-unmount
    :did-mount workspace-did-mount
    :mixins [mx/static

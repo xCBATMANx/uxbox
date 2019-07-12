@@ -74,20 +74,10 @@
 
 ;; --- History Toolbox (Component)
 
-
 (defn- history-toolbox-init
   [own]
   (let [[page-id] (::mx/args own)]
     (st/emit! (udh/initialize page-id))
-    own))
-
-(defn- history-toolbox-did-remount
-  [oldown own]
-  (let [[old-page-id] (::mx/args oldown)
-        [new-page-id] (::mx/args own)]
-    (when-not (= old-page-id new-page-id)
-      (st/emit! ::udh/stop-changes-watcher
-                (udh/initialize new-page-id)))
     own))
 
 (defn- history-toolbox-will-unmount
@@ -99,7 +89,7 @@
   {:mixins [mx/static mx/reactive]
    :init history-toolbox-init
    :will-unmount history-toolbox-will-unmount
-   :did-remount history-toolbox-did-remount}
+   :key-fn vector}
   [_]
   (let [history (mx/react refs/history)
         section (:section history :main)

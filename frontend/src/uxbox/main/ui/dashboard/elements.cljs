@@ -145,16 +145,10 @@
 ;;   (st/emit! (dd/initialize :dashboard/elements))
 ;;   own)
 
-;; (defn elements-page-did-remount
-;;   [old-state state]
-;;   (st/emit! (dd/initialize :dashboard/elements))
-;;   state)
-
 ;; (def elements-page
 ;;   (mx/component
 ;;    {:render elements-page-render
 ;;     :init elements-page-init
-;;     :did-remount elements-page-did-remount
 ;;     :name "elements-page"
 ;;     :mixins [mx/static]}))
 

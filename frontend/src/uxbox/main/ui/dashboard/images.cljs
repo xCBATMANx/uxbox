@@ -129,7 +129,7 @@
 
 (mx/defcs nav-item
   {:mixins [(mx/local) mx/static mx/reactive]}
-  [{:keys [rum/local] :as own} {:keys [id type name num-images] :as coll} selected?]
+  [{:keys [::mx/local] :as own} {:keys [id type name num-images] :as coll} selected?]
   (letfn [(on-click [event]
             (let [type (or type :own)]
               (st/emit! (rt/nav :dashboard/images {} {:type type :id id}))))
@@ -261,7 +261,7 @@
 
 (mx/defcs grid-options
   {:mixins [(mx/local) mx/static]}
-  [{:keys [rum/local] :as own} {:keys [type id] :as coll} selected]
+  [{:keys [::mx/local] :as own} {:keys [type id] :as coll} selected]
   (letfn [(delete []
             (st/emit! (di/delete-selected)))
           (on-delete [event]
@@ -444,18 +444,9 @@
     (st/emit! (di/initialize type id))
     own))
 
-(defn- images-page-did-remount
-  [old-own own]
-  (let [[old-type old-id] (:mx/args old-own)
-        [new-type new-id] (:mx/args own)]
-    (when (or (not= old-type new-type)
-              (not= old-id new-id))
-      (st/emit! (di/initialize new-type new-id)))
-    own))
-
 (mx/defc images-page
   {:init images-page-init
-   :did-remount images-page-did-remount
+   :key-fn vector
    :mixins [mx/static mx/reactive]}
   [_ _]
   (let [state (mx/react dashboard-ref)

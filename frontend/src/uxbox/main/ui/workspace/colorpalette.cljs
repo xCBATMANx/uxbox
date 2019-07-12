@@ -46,7 +46,7 @@
        [:span.color-text {} rgb-color]])))
 
 (defn- palette-after-render
-  [{:keys [rum/local] :as own}]
+  [{:keys [::mx/local] :as own}]
   (let [dom (mx/ref-node own "container")
         width (.-clientWidth dom)]
     (when (not= (:width @local) width)
@@ -60,7 +60,7 @@
 (mx/defcs palette
   {:mixins [mx/static mx/reactive (mx/local)]
    :after-render palette-after-render}
-  [{:keys [rum/local] :as own}]
+  [{:keys [::mx/local] :as own}]
   (let [collections (->> (mx/react collections-ref)
                          (vals)
                          (filter :id)

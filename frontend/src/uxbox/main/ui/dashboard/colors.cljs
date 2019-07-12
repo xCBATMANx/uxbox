@@ -40,7 +40,7 @@
 
 (mx/defcs page-title
   {:mixins [(mx/local) mx/static mx/reactive]}
-  [{:keys [rum/local] :as own} {:keys [id] :as coll}]
+  [{:keys [::mx/local] :as own} {:keys [id] :as coll}]
   (let [dashboard (mx/react dashboard-ref)
         own? (= :own (:type coll))
         edit? (:edit @local)]
@@ -90,7 +90,7 @@
 
 (mx/defcs nav-item
   {:mixins [(mx/local) mx/static]}
-  [{:keys [rum/local]} {:keys [id type name] :as coll} selected?]
+  [{:keys [::mx/local]} {:keys [id type name] :as coll} selected?]
   (let [colors (count (:colors coll))
         editable? (= type :own)]
     (letfn [(on-click [event]
@@ -198,7 +198,7 @@
 
 (mx/defcs grid-options
   {:mixins [mx/static (mx/local)]}
-  [{:keys [rum/local]} {:keys [type id] :as coll}]
+  [{:keys [::mx/local]} {:keys [type id] :as coll}]
   (letfn [(delete [event]
             (st/emit! (dc/delete-selected-colors)))
           (on-delete [event]
@@ -304,18 +304,9 @@
     (st/emit! (dc/initialize type id))
     own))
 
-(defn- colors-page-did-remount
-  [old-own own]
-  (let [[old-type old-id] (::mx/args old-own)
-        [new-type new-id] (::mx/args own)]
-    (when (or (not= old-type new-type)
-              (not= old-id new-id))
-      (st/emit! (dc/initialize new-type new-id)))
-    own))
-
 (mx/defc colors-page
   {:init colors-page-init
-   :did-remount colors-page-did-remount
+   :key-fn vector
    :mixins [mx/static mx/reactive]}
   [_ _]
   (let [state (mx/react dashboard-ref)
@@ -332,7 +323,7 @@
 
 (mx/defcs color-lightbox
   {:mixins [(mx/local {}) mx/static]}
-  [{:keys [rum/local]} {:keys [coll color] :as params}]
+  [{:keys [::mx/local]} {:keys [coll color] :as params}]
   (letfn [(on-submit [event]
             (let [params {:id coll
                           :from color

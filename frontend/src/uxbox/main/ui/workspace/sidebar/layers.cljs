@@ -93,7 +93,7 @@
   "A generic component that displays the shape name
   if it is available and allows inline edition of it."
   {:mixins [mx/static (mx/local)]}
-  [{:keys [rum/local]} {:keys [id] :as shape}]
+  [{:keys [::mx/local]} {:keys [id] :as shape}]
   (letfn [(on-blur [event]
             (let [target (dom/event->target event)
                   parent (.-parentNode target)
@@ -125,7 +125,7 @@
 
 (mx/defcs layer-simple
   {:mixins [mx/static (mx/local)]}
-  [{:keys [rum/local]} item selected]
+  [{:keys [::mx/local]} item selected]
   (let [selected? (contains? selected (:id item))
         select #(select-shape selected item %)
         toggle-visibility #(toggle-visibility selected item %)
@@ -196,7 +196,7 @@
 
 (mx/defcs layer-group
   {:mixins [mx/static mx/reactive (mx/local)]}
-  [{:keys [rum/local]} {:keys [id] :as item} selected]
+  [{:keys [::mx/local]} {:keys [id] :as item} selected]
   (let [selected? (contains? selected (:id item))
         collapsed? (:collapsed item true)
         shapes-map (mx/react refs/shapes-by-id)

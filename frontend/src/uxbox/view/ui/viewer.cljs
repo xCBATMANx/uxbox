@@ -37,18 +37,10 @@
     (st/emit! (dv/initialize token))
     own))
 
-(defn- viewer-page-did-remount
-  [oldown own]
-  (let [[old-token] (::mx/args oldown)
-        [new-token] (::mx/args own)]
-    (when (not= old-token new-token)
-      (st/emit! (dv/initialize new-token)))
-    own))
-
 (mx/defc viewer-page
   {:mixins [mx/static mx/reactive]
    :init viewer-page-init
-   :did-remount viewer-page-did-remount}
+   :key-fn vector}
   [token index id]
   (let [{:keys [project pages flags]} (mx/react state-ref)
         sitemap? (contains? flags :sitemap)]

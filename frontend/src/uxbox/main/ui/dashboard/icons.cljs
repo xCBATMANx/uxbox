@@ -72,7 +72,7 @@
 
 (mx/defcs page-title
   {:mixins [(mx/local) mx/static mx/reactive]}
-  [{:keys [rum/local] :as own} {:keys [id] :as coll}]
+  [{:keys [::mx/local] :as own} {:keys [id] :as coll}]
   (let [dashboard (mx/react dashboard-ref)
         own? (= :own (:type coll))
         edit? (:edit @local)]
@@ -453,18 +453,9 @@
     (st/emit! (di/initialize type id))
     own))
 
-(defn- icons-page-did-remount
-  [old-own own]
-  (let [[old-type old-id] (::mx/args old-own)
-        [new-type new-id] (::mx/args own)]
-    (when (or (not= old-type new-type)
-              (not= old-id new-id))
-      (st/emit! (di/initialize new-type new-id)))
-    own))
-
 (mx/defc icons-page
   {:init icons-page-init
-   :did-remount icons-page-did-remount
+   :key-fn vector
    :mixins [mx/static mx/reactive]}
   []
   (let [state (mx/react dashboard-ref)

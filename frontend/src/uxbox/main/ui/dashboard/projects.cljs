@@ -132,17 +132,11 @@
     (when url (blob/revoke-uri url))
     own))
 
-(defn- grid-item-thumbnail-did-remount
-  [oldown own]
-  (when-let [url (::url oldown)]
-    (blob/revoke-uri url))
-  (grid-item-thumbnail-init own))
-
 (mx/defcs grid-item-thumbnail
   {:mixins [mx/static]
    :init grid-item-thumbnail-init
-   :will-unmount grid-item-thumbnail-will-unmount
-   :did-remount grid-item-thumbnail-did-remount}
+   :key-fn vector
+   :will-unmount grid-item-thumbnail-will-unmount}
   [own project]
   (if-let [url (::url own)]
     [:div.grid-item-th
@@ -154,7 +148,7 @@
 
 (mx/defcs grid-item
   {:mixins [mx/static (mx/local)]}
-  [{:keys [rum/local] :as own} project]
+  [{:keys [::mx/local] :as own} project]
   (letfn [(on-navigate [event]
             (st/emit! (udp/go-to (:id project))))
           (delete []
@@ -233,14 +227,8 @@
   (st/emit! (udp/initialize))
   own)
 
-(defn projects-page-did-remount
-  [old-own own]
-  (st/emit! (udp/initialize))
-  own)
-
 (mx/defc projects-page
   {:init projects-page-init
-   :did-remount projects-page-did-remount
    :mixins [mx/static mx/reactive]}
   []
   (let [state (mx/react dashboard-ref)
