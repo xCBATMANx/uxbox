@@ -81,7 +81,7 @@
 
 (mx/defc image-shape-wrapper
   {:mixins [mx/static mx/reactive]
-   :will-mount (fn [own]
+   :init (fn [own]
                  (when-let [image-id (-> own ::mx/args first :image)]
                    (st/emit! (udv/fetch-image image-id)))
                  own)}

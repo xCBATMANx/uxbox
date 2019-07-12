@@ -447,7 +447,7 @@
 
 ;; --- Icons Page
 
-(defn- icons-page-will-mount
+(defn- icons-page-init
   [own]
   (let [[type id] (::mx/args own)]
     (st/emit! (di/initialize type id))
@@ -463,7 +463,7 @@
     own))
 
 (mx/defc icons-page
-  {:will-mount icons-page-will-mount
+  {:init icons-page-init
    :did-remount icons-page-did-remount
    :mixins [mx/static mx/reactive]}
   []

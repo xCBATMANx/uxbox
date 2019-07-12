@@ -438,7 +438,7 @@
 
 ;; --- Images Page
 
-(defn- images-page-will-mount
+(defn- images-page-init
   [own]
   (let [[type id] (::mx/args own)]
     (st/emit! (di/initialize type id))
@@ -454,7 +454,7 @@
     own))
 
 (mx/defc images-page
-  {:will-mount images-page-will-mount
+  {:init images-page-init
    :did-remount images-page-did-remount
    :mixins [mx/static mx/reactive]}
   [_ _]

@@ -31,7 +31,7 @@
 
 (mx/defcs image-component
   {:mixins [mx/static mx/reactive]
-   :will-mount (fn [own]
+   :init (fn [own]
                  ;; TODO: maybe do it conditionally
                  ;; (only fetch when it's not fetched)
                  (when-let [id (-> own ::mx/args first :image)]

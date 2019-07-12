@@ -37,7 +37,7 @@
 
 ;; --- Workspace
 
-(defn- workspace-will-mount
+(defn- workspace-init
   [own]
   (let [[projectid pageid] (::mx/args own)]
     (st/emit! (dw/initialize projectid pageid))
@@ -101,7 +101,7 @@
 
 (mx/defcs workspace
   {:did-remount workspace-did-remount
-   :will-mount workspace-will-mount
+   :init workspace-init
    :will-unmount workspace-will-unmount
    :did-mount workspace-did-mount
    :mixins [mx/static

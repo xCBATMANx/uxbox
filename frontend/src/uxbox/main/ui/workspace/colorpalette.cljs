@@ -112,14 +112,14 @@
        [:span.close-palette {:on-click close}
         i/close]])))
 
-(defn- colorpalette-will-mount
+(defn- colorpalette-init
   [own]
   (st/emit! (dc/fetch-collections))
   own)
 
 (mx/defc colorpalette
   {:mixins [mx/static mx/reactive]
-   :will-mount colorpalette-will-mount}
+   :init colorpalette-init}
   []
   (let [flags (mx/react refs/flags)]
     (when (contains? flags :colorpalette)

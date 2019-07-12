@@ -298,7 +298,7 @@
 
 ;; --- Colors Page
 
-(defn- colors-page-will-mount
+(defn- colors-page-init
   [own]
   (let [[type id] (::mx/args own)]
     (st/emit! (dc/initialize type id))
@@ -314,7 +314,7 @@
     own))
 
 (mx/defc colors-page
-  {:will-mount colors-page-will-mount
+  {:init colors-page-init
    :did-remount colors-page-did-remount
    :mixins [mx/static mx/reactive]}
   [_ _]

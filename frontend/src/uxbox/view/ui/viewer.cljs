@@ -31,7 +31,7 @@
 
 ;; --- Component
 
-(defn- viewer-page-will-mount
+(defn- viewer-page-init
   [own]
   (let [[token] (::mx/args own)]
     (st/emit! (dv/initialize token))
@@ -47,7 +47,7 @@
 
 (mx/defc viewer-page
   {:mixins [mx/static mx/reactive]
-   :will-mount viewer-page-will-mount
+   :init viewer-page-init
    :did-remount viewer-page-did-remount}
   [token index id]
   (let [{:keys [project pages flags]} (mx/react state-ref)

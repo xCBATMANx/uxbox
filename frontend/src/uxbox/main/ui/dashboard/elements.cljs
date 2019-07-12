@@ -140,7 +140,7 @@
 ;;       (page-title)
 ;;       (grid)]]]))
 
-;; (defn elements-page-will-mount
+;; (defn elements-page-init
 ;;   [own]
 ;;   (st/emit! (dd/initialize :dashboard/elements))
 ;;   own)
@@ -153,7 +153,7 @@
 ;; (def elements-page
 ;;   (mx/component
 ;;    {:render elements-page-render
-;;     :will-mount elements-page-will-mount
+;;     :init elements-page-init
 ;;     :did-remount elements-page-did-remount
 ;;     :name "elements-page"
 ;;     :mixins [mx/static]}))

@@ -114,7 +114,7 @@
      (-> (image-item image)
          (mx/with-key (str (:id image)))))])
 
-(defn will-mount
+(defn init
   [own]
   (let [local (::mx/local own)]
     (st/emit! (udi/fetch-collections))
@@ -131,7 +131,7 @@
 
 (mx/defcs image-collections-lightbox
   {:mixins [mx/reactive (mx/local)]
-   :will-mount will-mount
+   :init init
    :will-unmount will-unmount}
   [own]
   (let [local (::mx/local own)

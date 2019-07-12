@@ -75,7 +75,7 @@
 ;; --- History Toolbox (Component)
 
 
-(defn- history-toolbox-will-mount
+(defn- history-toolbox-init
   [own]
   (let [[page-id] (::mx/args own)]
     (st/emit! (udh/initialize page-id))
@@ -97,7 +97,7 @@
 
 (mx/defc history-toolbox
   {:mixins [mx/static mx/reactive]
-   :will-mount history-toolbox-will-mount
+   :init history-toolbox-init
    :will-unmount history-toolbox-will-unmount
    :did-remount history-toolbox-did-remount}
   [_]

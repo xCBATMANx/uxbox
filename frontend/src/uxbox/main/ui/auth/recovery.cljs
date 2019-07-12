@@ -65,7 +65,7 @@
 
 ;; --- Recovery Page
 
-(defn- recovery-page-will-mount
+(defn- recovery-page-init
   [own]
   (let [[token] (::mx/args own)]
     (st/emit! (uda/validate-recovery-token token))
@@ -73,7 +73,7 @@
 
 (mx/defc recovery-page
   {:mixins [mx/static (fm/clear-mixin st/store :recovery)]
-   :will-mount recovery-page-will-mount}
+   :init recovery-page-init}
   [token]
   [:div.login
    [:div.login-body

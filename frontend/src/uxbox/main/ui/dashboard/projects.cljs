@@ -117,7 +117,7 @@
 
 ;; --- Grid Item Thumbnail
 
-(defn- grid-item-thumbnail-will-mount
+(defn- grid-item-thumbnail-init
   [own]
   (let [[project] (::mx/args own)
         svg (exports/render-page (:page-id project))
@@ -136,11 +136,11 @@
   [oldown own]
   (when-let [url (::url oldown)]
     (blob/revoke-uri url))
-  (grid-item-thumbnail-will-mount own))
+  (grid-item-thumbnail-init own))
 
 (mx/defcs grid-item-thumbnail
   {:mixins [mx/static]
-   :will-mount grid-item-thumbnail-will-mount
+   :init grid-item-thumbnail-init
    :will-unmount grid-item-thumbnail-will-unmount
    :did-remount grid-item-thumbnail-did-remount}
   [own project]
@@ -228,7 +228,7 @@
 
 ;; --- Projects Page
 
-(defn projects-page-will-mount
+(defn projects-page-init
   [own]
   (st/emit! (udp/initialize))
   own)
@@ -239,7 +239,7 @@
   own)
 
 (mx/defc projects-page
-  {:will-mount projects-page-will-mount
+  {:init projects-page-init
    :did-remount projects-page-did-remount
    :mixins [mx/static mx/reactive]}
   []
