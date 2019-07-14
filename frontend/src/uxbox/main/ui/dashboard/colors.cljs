@@ -177,7 +177,7 @@
 
 (mx/defc grid-options-tooltip
   {:mixins [mx/reactive mx/static]}
-  [& {:keys [selected on-select title]}]
+  [{:keys [selected on-select title]}]
   {:pre [(uuid? selected)
          (fn? on-select)
          (string? title)]}
@@ -190,8 +190,8 @@
                     (dom/prevent-default event)
                     (dom/stop-propagation event)
                     (on-select id))]
-    [:ul.move-list {}
-     [:li.title {} title]
+    [:ul.move-list
+     [:li.title title]
      (for [{:keys [id name] :as coll} colls]
        [:li {:key (str id)}
         [:a {:on-click #(on-select % id)} name]])]))
@@ -229,17 +229,17 @@
          {:alt (tr "ds.multiselect-bar.copy")
           :on-click on-toggle-copy}
          (when (:show-copy-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.copy-to-library")
-                                 :on-select on-copy))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.copy-to-library")
+                                  :on-select on-copy}))
          i/copy]
         [:span.move-item.tooltip.tooltip-top
          {:alt (tr "ds.multiselect-bar.move")
           :on-click on-toggle-move}
          (when (:show-move-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.move-to-library")
-                                 :on-select on-move))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.move-to-library")
+                                  :on-select on-move}))
          i/move]
         [:span.delete.tooltip.tooltip-top
          {:alt (tr "ds.multiselect-bar.delete")
@@ -247,24 +247,24 @@
          i/trash]]
 
        ;; if not editable
-       [:div.multiselect-nav {}
+       [:div.multiselect-nav
         [:span.move-item.tooltip.tooltip-top
          {:alt (tr "ds.multiselect-bar.copy")
           :on-click on-toggle-copy}
          (when (:show-copy-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.copy-to-library")
-                                 :on-select on-copy))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.copy-to-library")
+                                  :on-select on-copy}))
          i/organize]])]))
 
 (mx/defc grid-item
   {:mixins [mx/static]}
-  [color selected?]
+  [[color selected?]]
   (letfn [(toggle-selection [event]
             (st/emit! (dc/toggle-color-selection color)))]
     [:div.grid-item.small-item.project-th {:on-click toggle-selection}
      [:span.color-swatch {:style {:background-color color}}]
-     [:div.input-checkbox.check-primary {}
+     [:div.input-checkbox.check-primary
       [:input {:type "checkbox"
                :id color
                :on-click toggle-selection
@@ -275,24 +275,24 @@
 
 (mx/defc grid
   {:mixins [mx/static]}
-  [{:keys [id type colors] :as coll} selected]
+  [[{:keys [id type colors] :as coll} selected]]
   (let [editable? (or (= :own type) (nil? id))
         colors (->> (remove nil? colors)
                     (sort-by identity))]
-    [:div.dashboard-grid-content {}
-     [:div.dashboard-grid-row {}
+    [:div.dashboard-grid-content
+     [:div.dashboard-grid-row
       (when editable? (grid-form id))
       (for [color colors]
         (let [selected? (contains? selected color)]
-          (-> (grid-item color selected?)
+          (-> (grid-item [color selected?])
               (mx/with-key (str color)))))]]))
 
 (mx/defc content
   {:mixins [mx/static]}
-  [{:keys [selected] :as state} coll]
-  [:section.dashboard-grid.library {}
+  [[{:keys [selected] :as state} coll]]
+  [:section.dashboard-grid.library
    (page-title coll)
-   (grid coll selected)
+   (grid [coll selected])
    (when (and (seq selected))
      (grid-options coll))])
 
@@ -300,24 +300,24 @@
 
 (defn- colors-page-init
   [own]
-  (let [[type id] (::mx/args own)]
+  (let [{:keys [type id]} (::mx/props own)]
     (st/emit! (dc/initialize type id))
     own))
 
 (mx/defc colors-page
   {:init colors-page-init
-   :key-fn vector
+   :key-fn identity
    :mixins [mx/static mx/reactive]}
-  [_ _]
+  [props]
   (let [state (mx/react dashboard-ref)
         colls (mx/react collections-ref)
         coll (get colls (:id state))]
-    [:main.dashboard-main {}
+    [:main.dashboard-main
      (messages-widget)
      (header)
-     [:section.dashboard-content {}
-      (nav state colls)
-      (content state coll)]]))
+     [:section.dashboard-content
+      (nav [state colls])
+      (content [state coll])]]))
 
 ;; --- Colors Lightbox (Component)
 

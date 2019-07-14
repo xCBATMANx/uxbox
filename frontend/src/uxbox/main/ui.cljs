@@ -85,7 +85,7 @@
                  (uuid-str? id) (uuid id)
                  :else nil)
             type (when (str/alpha? type) (keyword type))]
-        (dashboard/icons-page type id))
+        (dashboard/icons-page {:type type :id id}))
 
       :dashboard/images
       (let [{:keys [id type]} (get-in route [:params :query])
@@ -94,7 +94,7 @@
                  (uuid-str? id) (uuid id)
                  :else nil)
             type (when (str/alpha? type) (keyword type))]
-        (dashboard/images-page type id))
+        (dashboard/images-page {:type type :id id}))
 
       :dashboard/colors
       (let [{:keys [id type]} (get-in route [:params :query])
@@ -103,7 +103,7 @@
                  (str/digits? id) (parse-int id)
                  (uuid-str? id) (uuid id)
                  :else nil)]
-        (dashboard/colors-page type id))
+        (dashboard/colors-page {:type type :id id}))
 
       :workspace/page
       (let [projectid (uuid (get-in route [:params :path :project]))

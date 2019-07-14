@@ -95,10 +95,10 @@
               (st/emit! (di/delete-collection id)))
             (on-delete []
               (udl/open! :confirm {:on-accept delete}))]
-      [:div.dashboard-title {}
-       [:h2 {}
+      [:div.dashboard-title
+       [:h2
         (if edit?
-          [:div.dashboard-title-field {}
+          [:div.dashboard-title-field
            [:span.edit
             {:content-editable true
              :ref "input"
@@ -189,7 +189,7 @@
 
 (mx/defc nav
   {:mixins [mx/static]}
-  [{:keys [type id] :as state} colls]
+  [[{:keys [type id] :as state} colls]]
   (let [own? (= type :own)
         builtin? (= type :builtin)]
     (letfn [(select-tab [type]
@@ -199,9 +199,9 @@
                                  (first))]
                 (st/emit! (rt/nav :dashboard/images nil {:type type :id (:id coll)}))
                 (st/emit! (rt/nav :dashboard/images nil {:type type}))))]
-      [:div.library-bar {}
-       [:div.library-bar-inside {}
-        [:ul.library-tabs {}
+      [:div.library-bar
+       [:div.library-bar-inside
+        [:ul.library-tabs
          [:li {:class-name (when own? "current")
                :on-click (partial select-tab :own)}
           (tr "ds.your-images-title")]
@@ -238,7 +238,7 @@
 
 (mx/defc grid-options-tooltip
   {:mixins [mx/reactive mx/static]}
-  [& {:keys [selected on-select title]}]
+  [{:keys [selected on-select title]}]
   {:pre [(uuid? selected)
          (fn? on-select)
          (string? title)]}
@@ -261,7 +261,7 @@
 
 (mx/defcs grid-options
   {:mixins [(mx/local) mx/static]}
-  [{:keys [::mx/local] :as own} {:keys [type id] :as coll} selected]
+  [{:keys [::mx/local] :as own} [{:keys [type id] :as coll} selected]]
   (letfn [(delete []
             (st/emit! (di/delete-selected)))
           (on-delete [event]
@@ -292,17 +292,17 @@
          {:alt (tr "ds.multiselect-bar.copy")
           :on-click on-toggle-copy}
          (when (:show-copy-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.copy-to-library")
-                                 :on-select on-copy))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.copy-to-library")
+                                  :on-select on-copy}))
          ^:inline i/copy]
         [:span.move-item.tooltip.tooltip-top
          {:alt (tr "ds.multiselect-bar.move")
           :on-click on-toggle-move}
          (when (:show-move-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.move-to-library")
-                                 :on-select on-move))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.move-to-library")
+                                  :on-select on-move}))
          ^:inline i/move]
         (when (= 1 (count selected))
           [:span.move-item.tooltip.tooltip-top
@@ -320,9 +320,9 @@
          {:alt (tr "ds.multiselect-bar.copy")
           :on-click on-toggle-copy}
          (when (:show-copy-tooltip @local)
-           (grid-options-tooltip :selected id
-                                 :title (tr "ds.multiselect-bar.copy-to-library")
-                                 :on-select on-copy))
+           (grid-options-tooltip {:selected id
+                                  :title (tr "ds.multiselect-bar.copy-to-library")
+                                  :on-select on-copy}))
          ^:inline i/organize]])]))
 
 (mx/defc grid-item
@@ -385,12 +385,12 @@
 
 (mx/defc content
   {:mixins [mx/static]}
-  [{:keys [selected] :as state} coll]
+  [[{:keys [selected] :as state} coll]]
   [:section.dashboard-grid.library {}
    (page-title coll)
    (grid state)
    (when (seq selected)
-     (grid-options coll selected))])
+     (grid-options [coll selected]))])
 
 ;; --- Menu
 
@@ -440,21 +440,21 @@
 
 (defn- images-page-init
   [own]
-  (let [[type id] (::mx/args own)]
+  (let [{:keys [type id]} (::mx/props own)]
     (st/emit! (di/initialize type id))
     own))
 
 (mx/defc images-page
   {:init images-page-init
-   :key-fn vector
+   :key-fn identity
    :mixins [mx/static mx/reactive]}
   [_ _]
   (let [state (mx/react dashboard-ref)
         colls (mx/react collections-ref)
         coll (get colls (:id state))]
-    [:main.dashboard-main {}
+    [:main.dashboard-main
      (header)
-     [:section.dashboard-content {}
-      (nav state colls)
+     [:section.dashboard-content
+      (nav [state colls])
       (menu coll)
-      (content state coll)]]))
+      (content [state coll])]]))

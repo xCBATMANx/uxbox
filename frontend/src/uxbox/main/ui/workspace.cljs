@@ -106,7 +106,7 @@
                  :no-tool-bar-right (not right-sidebar?)
                  :no-tool-bar-left (not left-sidebar?)
                  :scrolling (:viewport-positionig workspace))]
-    [:div {}
+    [:*
      (messages-widget)
      (header)
      (colorpalette)
@@ -127,9 +127,8 @@
          (vertical-rule))
 
        ;; Canvas
-       [:section.workspace-canvas
-        {:id "workspace-canvas"
-         :ref "workspace-canvas"}
+       [:section.workspace-canvas {:id "workspace-canvas"
+                                   :ref "workspace-canvas"}
         (viewport)]]
 
       ;; Aside

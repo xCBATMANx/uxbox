@@ -6,26 +6,27 @@
 ;; Copyright (c) 2015-2017 Juan de la Cruz <delacruzgarciajuan@gmail.com>
 
 (ns uxbox.main.ui.dashboard.projects
-  (:require [lentes.core :as l]
-            [cuerdas.core :as str]
-            [uxbox.builtins.icons :as i]
-            [uxbox.main.store :as st]
-            [uxbox.main.constants :as c]
-            [uxbox.main.data.projects :as udp]
-            [uxbox.main.data.lightbox :as udl]
-            [uxbox.main.ui.dashboard.header :refer [header]]
-            [uxbox.main.ui.dashboard.projects-createform]
-            [uxbox.main.ui.lightbox :as lbx]
-            [uxbox.main.ui.messages :refer [messages-widget]]
-            [uxbox.main.ui.keyboard :as kbd]
-            [uxbox.main.exports :as exports]
-            [uxbox.util.i18n :as t :refer (tr)]
-            [uxbox.util.router :as r]
-            [uxbox.util.data :refer [read-string]]
-            [uxbox.util.dom :as dom]
-            [uxbox.util.blob :as blob]
-            [rumext.core :as mx :include-macros true]
-            [uxbox.util.time :as dt]))
+  (:require
+   [cuerdas.core :as str]
+   [lentes.core :as l]
+   [rumext.core :as mx :include-macros true]
+   [uxbox.builtins.icons :as i]
+   [uxbox.main.constants :as c]
+   [uxbox.main.data.lightbox :as udl]
+   [uxbox.main.data.projects :as udp]
+   [uxbox.main.exports :as exports]
+   [uxbox.main.store :as st]
+   [uxbox.main.ui.dashboard.header :refer [header]]
+   [uxbox.main.ui.dashboard.projects-createform]
+   [uxbox.main.ui.keyboard :as kbd]
+   [uxbox.main.ui.lightbox :as lbx]
+   [uxbox.main.ui.messages :refer [messages-widget]]
+   [uxbox.util.blob :as blob]
+   [uxbox.util.data :refer [read-string]]
+   [uxbox.util.dom :as dom]
+   [uxbox.util.i18n :as t :refer (tr)]
+   [uxbox.util.router :as r]
+   [uxbox.util.time :as dt]))
 
 ;; --- Helpers & Constants
 
@@ -74,8 +75,7 @@
 ;; --- Menu (Filter & Sort)
 
 (mx/defc menu
-  {:mixins [mx/static]}
-  [state projects]
+  [[state projects]]
   (let [ordering (:order state :created)
         filtering (:filter state "")
         count (count projects)]
@@ -135,7 +135,7 @@
 (mx/defcs grid-item-thumbnail
   {:mixins [mx/static]
    :init grid-item-thumbnail-init
-   :key-fn vector
+   :key-fn :id
    :will-unmount grid-item-thumbnail-will-unmount}
   [own project]
   (if-let [url (::url own)]
@@ -200,7 +200,7 @@
 
 (mx/defc grid
   {:mixins [mx/static]}
-  [state projects]
+  [[state projects]]
   (let [ordering (:order state :created)
         filtering (:filter state "")
         projects (->> (vals projects)
@@ -237,5 +237,5 @@
      (messages-widget)
      (header)
      [:section.dashboard-content {}
-      (menu state projects-map)
-      (grid state projects-map)]]))
+      (menu [state projects-map])
+      (grid [state projects-map])]]))

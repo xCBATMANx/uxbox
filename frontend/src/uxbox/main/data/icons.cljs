@@ -26,11 +26,7 @@
 (defrecord Initialize [type id]
   ptk/UpdateEvent
   (update [_ state]
-    (let [type (or type :own)
-          data {:type type :id id :selected #{}}]
-      (-> state
-          (assoc-in [:dashboard :icons] data)
-          (assoc-in [:dashboard :section] :dashboard/icons))))
+    (assoc-in state [:dashboard :icons] {:selected #{}}))
 
   ptk/WatchEvent
   (watch [_ state s]
