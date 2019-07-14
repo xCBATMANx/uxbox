@@ -137,8 +137,9 @@
         (l/derive st/state))))
 
 (mx/def nav-item
-  :mixins [(mx/local) mx/static mx/reactive]
   :key-fn :id
+  :mixins [(mx/local) mx/static mx/reactive]
+
   :init
   (fn [own {:keys [id] :as props}]
     (assoc own ::num-icons-ref (num-icons-ref id)))
@@ -221,7 +222,7 @@
          (for [coll (cond->> (vals colls)
                       own? (filter #(= :own (:type %)))
                       builtin? (filter #(= :builtin (:type %)))
-                      true (sort-by :name))]
+                      own? (sort-by :name))]
            (let [selected? (= (:id coll) id)]
              (nav-item (assoc coll :selected? selected?))))]]])))
 
@@ -384,7 +385,7 @@
         [:input {:type "checkbox"
                  :id (:id icon)
                  :on-change toggle-selection
-                 :checked (or selected? false)}]
+                 :checked selected?}]
         [:label {:for (:id icon)}]]
        [:span.grid-item-image (icon/icon-svg icon)]
        [:div.item-info {:on-click ignore-click}
@@ -405,9 +406,7 @@
   (fn [own {:keys [id] :as props}]
     (let [selector (fn [icons]
                      (->> (vals icons)
-                          (filter #(= id (:collection %)))
-                          (filter-icons-by (:filter props ""))
-                          (sort-icons-by (:order props :name))))]
+                          (filter #(= id (:collection %)))))]
       (assoc own ::icons-ref (-> (comp (l/key :icons)
                                        (l/lens selector))
                                  (l/derive st/state)))))
@@ -415,7 +414,10 @@
   :render
   (fn [own {:keys [selected edition id type] :as props}]
     (let [editable? (or (= type :own) (nil? id))
-          icons (mx/react (::icons-ref own))]
+          icons (->> (mx/react (::icons-ref own))
+                     (filter-icons-by (:filter props ""))
+                     (sort-icons-by (:order props :name)))]
+
       [:div.dashboard-grid-content
        [:div.dashboard-grid-row
         (when editable? (grid-form id))
@@ -483,15 +485,6 @@
           i/close]]]])))
 
 ;; --- Icons Page
-
-;; (def collections-ref
-;;   (-> (l/key :icons-collections)
-;;       (l/derive st/state)))
-
-;; (def icons-ref
-;;   (-> (l/key :icons)
-;;       (l/derive st/state)))
-
 
 (mx/def icons-page
   :key-fn identity
