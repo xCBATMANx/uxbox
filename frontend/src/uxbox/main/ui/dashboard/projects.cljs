@@ -227,15 +227,23 @@
   (st/emit! (udp/initialize))
   own)
 
-(mx/defc projects-page
-  {:init projects-page-init
-   :mixins [mx/static mx/reactive]}
-  []
-  (let [state (mx/react dashboard-ref)
-        projects-map (mx/react projects-map-ref)]
-    [:main.dashboard-main {}
-     (messages-widget)
-     (header)
-     [:section.dashboard-content {}
-      (menu [state projects-map])
-      (grid [state projects-map])]]))
+    ;; [:main.dashboard-main
+    ;;  ;; (messages-widget)
+    ;;  (header)
+
+(mx/def projects-page
+  :mixins [mx/static mx/reactive]
+
+  :init
+  (fn [own props]
+    (st/emit! (udp/initialize))
+    own)
+
+  :render
+  (fn [own props]
+    (let [state (mx/react dashboard-ref)
+          projects-map (mx/react projects-map-ref)]
+      [:section.dashboard-content
+       (menu [state projects-map])
+       (grid [state projects-map])])))
+

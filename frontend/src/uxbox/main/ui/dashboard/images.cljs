@@ -387,7 +387,7 @@
                                 :on-click on-edit
                                 :default-value (:name image)}]
           [:h3 {:on-double-click on-edit} (:name image)])
-        [:span.date {} (str (tr "ds.uploaded-at" (dt/format created-at "L")))]]])))
+        [:span.date (str (tr "ds.uploaded-at" (dt/format created-at "L")))]]])))
 
 (mx/def grid
   :mixins [mx/reactive]

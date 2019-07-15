@@ -72,11 +72,12 @@
       (let [token (get-in route [:params :path :token])]
         (auth/recovery-page token))
 
-      :dashboard/projects (dashboard/projects-page)
       :settings/profile (settings/profile-page)
       :settings/password (settings/password-page)
       :settings/notifications (settings/notifications-page)
       ;; ;; :dashboard/elements (dashboard/elements-page)
+
+      :dashboard/projects (dashboard/dashboard {:section :projects})
 
       :dashboard/icons
       (let [{:keys [id type]} (get-in route [:params :query])
@@ -85,7 +86,7 @@
                  (uuid-str? id) (uuid id)
                  :else nil)
             type (when (str/alpha? type) (keyword type))]
-        (dashboard/icons-page {:type type :id id}))
+        (dashboard/dashboard {:section :icons :type type :id id}))
 
       :dashboard/images
       (let [{:keys [id type]} (get-in route [:params :query])

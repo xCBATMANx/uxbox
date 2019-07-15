@@ -56,9 +56,12 @@
 
 ;; --- Refs
 
-;; TODO: remove when sidebar is refactored
 (def collections-ref
   (-> (l/key :icons-collections)
+      (l/derive st/state)))
+
+(def opts-ref
+  (-> (l/in [:dashboard :icons])
       (l/derive st/state)))
 
 ;; TODO: remove when sidebar is refactored
@@ -69,19 +72,11 @@
 ;; --- Page Title
 
 (mx/def page-title
-  :mixins [(mx/local) mx/static mx/reactive]
-
-  :init
-  (fn [own props]
-    (let [{:keys [type id]} (::mx/props own)]
-      (assoc own ::coll-ref (-> (l/in [:icons-collections id])
-                                (l/derive st/state)))))
+  :mixins [(mx/local) mx/static]
 
   :render
-  (fn [{:keys [::mx/local] :as own}
-       {:keys [id type] :as props}]
-    (let [coll (mx/react (::coll-ref own))
-          own? (= :own (:type coll))
+  (fn [{:keys [::mx/local] :as own} {:keys [id type] :as coll}]
+    (let [own? (= :own (:type coll))
           edit? (:edit @local)]
       (letfn [(on-save [e]
                 (let [dom (mx/ref-node own "input")
@@ -146,7 +141,7 @@
 
   :render
   (fn [{:keys [::mx/local] :as own}
-       {:keys [id type name num-icons selected?] :as coll}]
+       {:keys [id type name num-icons ::selected?] :as coll}]
     (let [num-icons (or num-icons (mx/react (::num-icons-ref own)))
           editable? (= type :own)]
       (letfn [(on-click [event]
@@ -185,16 +180,12 @@
 
 (mx/def nav
   :mixins [mx/static mx/reactive]
-  :init
-  (fn [own {:keys [type id] :as props}]
-    (assoc own ::collections-ref (-> (l/key :icons-collections)
-                                     (l/derive st/state))))
+
   :render
   (fn [own {:keys [id type] :as props}]
-    (let [type (or type :own)
-          own? (= type :own)
+    (let [own? (= type :own)
           builtin? (= type :builtin)
-          colls (mx/react (::collections-ref own))
+          colls (mx/react collections-ref)
           props (assoc props :type type :colls colls)
           select-tab (fn [type]
                        (if-let [coll (->> (vals colls)
@@ -218,13 +209,13 @@
             [:a.btn-primary {:on-click #(st/emit! (di/create-collection))}
              (tr "ds.icons-collection.new")]])
          (when own?
-           (nav-item {:selected? (nil? id)}))
+           (nav-item {::selected? (nil? id)}))
          (for [coll (cond->> (vals colls)
                       own? (filter #(= :own (:type %)))
                       builtin? (filter #(= :builtin (:type %)))
                       own? (sort-by :name))]
            (let [selected? (= (:id coll) id)]
-             (nav-item (assoc coll :selected? selected?))))]]])))
+             (nav-item (assoc coll ::selected? selected?))))]]])))
 
 
 ;; --- Grid
@@ -250,17 +241,13 @@
 
 (mx/def grid-options-tooltip
   :mixins [mx/reactive mx/static]
-  :init
-  (fn [own props]
-    (assoc own ::collections-ref (-> (l/key :icons-collections)
-                                     (l/derive st/state))))
 
   :render
   (fn [own {:keys [selected on-select title]}]
     {:pre [(uuid? selected)
            (fn? on-select)
            (string? title)]}
-    (let [colls (mx/react (::collections-ref own))
+    (let [colls (mx/react collections-ref)
           colls (->> (vals colls)
                      (filter #(= :own (:type %)))
                      (remove #(= selected (:id %)))
@@ -278,17 +265,12 @@
           [:a {:on-click #(on-select % id)} name]])])))
 
 (mx/def grid-options
-  :mixins [(mx/local) mx/static mx/reactive]
-  :init
-  (fn [own props]
-    (let [{:keys [type id]} (::mx/props own)]
-      (assoc own ::coll-ref (-> (l/in [:icons-collections id])
-                                (l/derive st/state)))))
+  :mixins [(mx/local) mx/static]
+
   :render
   (fn [{:keys [::mx/local] :as own}
-       {:keys [selected] :as props}]
-    (let [{:keys [type id] :as coll} (mx/react (::coll-ref own))
-          editable? (or (= type :own) (nil? coll))]
+       {:keys [id type selected ::coll] :as props}]
+    (let [editable? (or (= type :own) (nil? coll))]
       (letfn [(delete []
                 (st/emit! (di/delete-selected)))
               (on-delete [event]
@@ -360,7 +342,6 @@
   (fn [own {:keys [id created-at ::selected? ::edition?] :as icon}]
     (letfn [(toggle-selection [event]
               (prn "toggle-selection")
-              ;; (js/console.log (.-nativeEvent event))
               (st/emit! (di/toggle-icon-selection id)))
             #_(toggle-selection-shifted [event]
               (when (kbd/shift? event)
@@ -426,86 +407,92 @@
                 selected? (contains? selected (:id icon))]
             (grid-item (assoc icon ::selected? selected? ::edition? edition?))))]])))
 
-(mx/defc content
-  [{:keys [selected] :as props}]
-  [:section.dashboard-grid.library
-   (page-title props)
-   (grid props)
-   (when (seq selected)
-     (grid-options props))])
-
 ;; --- Menu
 
-(mx/defcs menu
-  {:mixins [mx/static mx/reactive]
-   :init
-   (fn [own props]
-     (assoc own
-            ::num-icons-ref (num-icons-ref (:id props))
-            ::collection-ref (-> (l/in [:icons-collections (:id props)])
-                                 (l/derive st/state))
-            ::opts-ref (-> (l/in [:dashboard :icons])
-                           (l/derive st/state))))}
-  [own props]
-  (let [{:keys [id num-icons] :as coll} (mx/react (::collection-ref own))
-        num-icons (or num-icons (mx/react (::num-icons-ref own)))
-        opts (mx/react (::opts-ref own))]
-    (letfn [(on-term-change [event]
-              (let [term (-> (dom/get-target event)
-                             (dom/get-value))]
-                (st/emit! (di/update-opts :filter term))))
-            (on-ordering-change [event]
-              (let [value (dom/event->value event)
-                    value (read-string value)]
-                (st/emit! (di/update-opts :order value))))
-            (on-clear [event]
-              (st/emit! (di/update-opts :filter "")))]
-      [:section.dashboard-bar.library-gap
-       [:div.dashboard-info
-        ;; Counter
-        [:span.dashboard-icons (tr "ds.num-icons" (t/c num-icons))]
+(mx/def menu
+  :mixins [mx/static mx/reactive]
 
-        ;; Sorting
-        [:div
-         [:span (tr "ds.ordering")]
-         [:select.input-select
-          {:on-change on-ordering-change
-           :value (pr-str (:order opts :name))}
-          (for [[key value] (seq +ordering-options+)]
-            [:option {:key key :value (pr-str key)} (tr value)])]]
-        ;; Search
-        [:form.dashboard-search
-         [:input.input-text {:key :icons-search-box
-                             :type "text"
-                             :on-change on-term-change
-                             :auto-focus true
-                             :placeholder (tr "ds.search.placeholder")
-                             :value (:filter opts "")}]
-         [:div.clear-search {:on-click on-clear}
-          i/close]]]])))
+  :init
+  (fn [own {:keys [id] :as props}]
+    (assoc own ::num-icons-ref (num-icons-ref id)))
+
+  :render
+  (fn [own props]
+    (prn "menu$render" props)
+    (let [{:keys [id num-icons] :as coll} (::coll props)
+          num-icons (or num-icons (mx/react (::num-icons-ref own)))]
+      (letfn [(on-term-change [event]
+                (let [term (-> (dom/get-target event)
+                               (dom/get-value))]
+                  (st/emit! (di/update-opts :filter term))))
+              (on-ordering-change [event]
+                (let [value (dom/event->value event)
+                      value (read-string value)]
+                  (st/emit! (di/update-opts :order value))))
+              (on-clear [event]
+                (st/emit! (di/update-opts :filter "")))]
+        [:section.dashboard-bar.library-gap
+         [:div.dashboard-info
+          ;; Counter
+          [:span.dashboard-icons (tr "ds.num-icons" (t/c num-icons))]
+
+          ;; Sorting
+          [:div
+           [:span (tr "ds.ordering")]
+           [:select.input-select
+            {:on-change on-ordering-change
+             :value (pr-str (:order props :name))}
+            (for [[key value] (seq +ordering-options+)]
+              [:option {:key key :value (pr-str key)} (tr value)])]]
+          ;; Search
+          [:form.dashboard-search
+           [:input.input-text {:key :icons-search-box
+                               :type "text"
+                               :on-change on-term-change
+                               :auto-focus true
+                               :placeholder (tr "ds.search.placeholder")
+                               :value (:filter props "")}]
+           [:div.clear-search {:on-click on-clear}
+            i/close]]]]))))
+
+(mx/def content
+  :mixins [mx/reactive mx/static]
+
+  :init
+  (fn [own {:keys [id] :as props}]
+    (assoc own ::coll-ref (-> (l/in [:icons-collections id])
+                              (l/derive st/state))))
+
+  :render
+  (fn [own props]
+    (let [opts (mx/react opts-ref)
+          coll (mx/react (::coll-ref own))
+          props (merge opts props)]
+      [:*
+       (menu (assoc props ::coll coll))
+       [:section.dashboard-grid.library
+        (page-title coll)
+        (grid props)
+        (when (seq (:selected opts))
+          (grid-options (assoc props ::coll coll)))]])))
+
 
 ;; --- Icons Page
 
 (mx/def icons-page
   :key-fn identity
   :mixins #{mx/static mx/reactive}
+
   :init
   (fn [own props]
     (let [{:keys [type id]} (::mx/props own)]
       (st/emit! (di/initialize type id))
-      (assoc own
-             ::coll-ref (-> (l/in [:icons-collections (:id props)])
-                            (l/derive st/state))
-             ::opts-ref (-> (l/in [:dashboard :icons])
-                            (l/derive st/state)))))
+      own))
+
   :render
-  (fn [own props]
-    (let [opts (mx/react (::opts-ref own))
-          coll (mx/react (::coll-ref own))
-          props (merge opts props)]
-      [:main.dashboard-main
-       (header)
-       [:section.dashboard-content
-        (nav props)
-        #_(menu props)
-        (content props)]])))
+  (fn [own {:keys [type] :as props}]
+    (let [type (or type :own)
+          props (assoc props :type type)]
+      [:section.dashboard-content
+       (nav props)
+       (content props)])))
