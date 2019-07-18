@@ -28,63 +28,66 @@
 
 ;; --- Refs
 
-(def dashboard-ref
-  (-> (l/in [:dashboard :colors])
-      (l/derive st/state)))
-
 (def collections-ref
   (-> (l/key :colors-collections)
       (l/derive st/state)))
 
+(def opts-ref
+  (-> (l/in [:dashboard :colors])
+      (l/derive st/state)))
+
+
 ;; --- Page Title
 
-(mx/defcs page-title
-  {:mixins [(mx/local) mx/static mx/reactive]}
-  [{:keys [::mx/local] :as own} {:keys [id] :as coll}]
-  (let [dashboard (mx/react dashboard-ref)
-        own? (= :own (:type coll))
-        edit? (:edit @local)]
-    (letfn [(save []
-              (let [dom (mx/ref-node own "input")
-                    name (dom/get-inner-text dom)]
-                (st/emit! (dc/rename-collection id (str/trim name)))
-                (swap! local assoc :edit false)))
-            (cancel []
-              (swap! local assoc :edit false))
-            (edit []
-              (swap! local assoc :edit true))
-            (on-input-keydown [e]
-              (cond
-                (k/esc? e) (cancel)
-                (k/enter? e)
-                (do
-                  (dom/prevent-default e)
-                  (dom/stop-propagation e)
-                  (save))))
-            (delete []
-              (st/emit! (dc/delete-collection id)))
-            (on-delete []
-              (udl/open! :confirm {:on-accept delete}))]
-      [:div.dashboard-title
-       [:h2
-        (if edit?
-          [:div.dashboard-title-field
-           [:span.edit {:content-editable true
-                        :ref "input"
-                        :on-key-down on-input-keydown}
-            (:name coll)]
-           [:span.close {:on-click cancel} i/close]]
-          (if own?
-            [:span.dashboard-title-field {:on-double-click edit}
-             (:name coll)]
-            [:span.dashboard-title-field
-             (:name coll)]))]
-       (when (and own? coll)
-         [:div.edition
+(mx/def page-title
+  :mixins [(mx/local) mx/static mx/reactive]
+
+  :render
+  (fn [{:keys [::mx/local] :as own}
+       {:keys [id] :as coll}]
+    (let [own? (= :own (:type coll))
+          edit? (:edit @local)]
+      (letfn [(save []
+                (let [dom (mx/ref-node own "input")
+                      name (dom/get-inner-text dom)]
+                  (st/emit! (dc/rename-collection id (str/trim name)))
+                  (swap! local assoc :edit false)))
+              (cancel []
+                (swap! local assoc :edit false))
+              (edit []
+                (swap! local assoc :edit true))
+              (on-input-keydown [e]
+                (cond
+                  (k/esc? e) (cancel)
+                  (k/enter? e)
+                  (do
+                    (dom/prevent-default e)
+                    (dom/stop-propagation e)
+                    (save))))
+              (delete []
+                (st/emit! (dc/delete-collection id)))
+              (on-delete []
+                (udl/open! :confirm {:on-accept delete}))]
+        [:div.dashboard-title
+         [:h2
           (if edit?
-            [:span {:on-click save} ^:inline i/save]
-            [:span {:on-click edit} ^:inline i/pencil])
-          [:span {:on-click on-delete} ^:inline i/trash]])])))
+            [:div.dashboard-title-field
+             [:span.edit {:content-editable true
+                          :ref "input"
+                          :on-key-down on-input-keydown}
+              (:name coll)]
+             [:span.close {:on-click cancel} i/close]]
+            (if own?
+              [:span.dashboard-title-field {:on-double-click edit}
+               (:name coll)]
+              [:span.dashboard-title-field
+               (:name coll)]))]
+         (when (and own? coll)
+           [:div.edition
+            (if edit?
+              [:span {:on-click save} i/save]
+              [:span {:on-click edit} i/pencil])
+            [:span {:on-click on-delete} i/trash]])]))))
 
 ;; --- Nav
 
@@ -132,18 +135,11 @@
 (mx/def nav
   :mixins [mx/static mx/reactive]
 
-  :init
-  (fn [own {:keys [type id] :as props}]
-    (assoc own ::collections-ref (-> (l/key :colors-collections)
-                                     (l/derive st/state))))
-
   :render
   (fn [own {:keys [id type] :as props}]
-    (let [type (or type :own)
-          own? (= type :own)
+    (let [own? (= type :own)
           builtin? (= type :builtin)
-          colls (mx/react (::collections-ref own))
-          props (assoc props :type type :colls colls)
+          colls (mx/react collections-ref)
           select-tab (fn [type]
                        (if-let [coll (->> (vals colls)
                                           (filter #(= type (:type %)))
@@ -177,25 +173,19 @@
 
 (mx/defc grid-form
   [coll-id]
-  [:div.grid-item.small-item.add-project {:on-click #(udl/open! :color-form {:coll coll-id})}
-   [:span {} (tr "ds.color-new")]])
+  [:div.grid-item.small-item.add-project
+   {:on-click #(udl/open! :color-form {:coll coll-id})}
+   [:span (tr "ds.color-new")]])
 
 (mx/def grid-options-tooltip
   :mixins [mx/reactive mx/static]
-
-  :init
-  (fn [own props]
-    (assoc own ::collections-ref (-> (l/key :colors-collections)
-                                     (l/derive st/state))))
 
   :render
   (fn [own {:keys [selected on-select title]}]
     {:pre [(uuid? selected)
            (fn? on-select)
            (string? title)]}
-
-
-    (let [colls (mx/react (::collections-ref own))
+    (let [colls (mx/react collections-ref)
           colls (->> (vals colls)
                      (filter #(= :own (:type %)))
                      (remove #(= selected (:id %)))
@@ -297,53 +287,56 @@
   :mixins [mx/static]
 
   :render
-  (fn [own {:keys [id type colors ::selected] :as coll}]
-    (let [editable? (or (= :own type) (nil? id))
+  (fn [own {:keys [selected ::coll] :as props}]
+    (let [{:keys [id type colors]} coll
+          editable? (or (= :own type) (nil? id))
           colors (->> (remove nil? colors)
                       (sort-by identity))]
       [:div.dashboard-grid-content
        [:div.dashboard-grid-row
-        (when editable? (grid-form id))
+        (when editable? (grid-form props))
         (for [color colors]
           (let [selected? (contains? selected color)]
-            (grid-item [color selected?])))]])))
+            (grid-item {:color color :selected? selected?})))]])))
 
-(mx/defc content
-  {:mixins [mx/static]}
-  [{:keys [selected coll] :as props}]
-  [:section.dashboard-grid.library
-   (page-title coll)
-   (grid (assoc coll ::selected selected))
-   (when (and (seq selected))
-     (grid-options coll))])
+(mx/def content
+  :mixins [mx/reactive mx/static]
+
+  :init
+  (fn [own {:keys [id] :as props}]
+    (assoc own ::coll-ref (-> (l/in [:colors-collections id])
+                              (l/derive st/state))))
+
+  :render
+  (fn [own props]
+    (let [opts (mx/react opts-ref)
+          coll (mx/react (::coll-ref own))
+          props (merge opts props)]
+      [:section.dashboard-grid.library
+       (page-title coll)
+       (grid (assoc props ::coll coll))
+       (when (seq (:selected opts))
+         (grid-options props))])))
 
 ;; --- Colors Page
 
 (mx/def colors-page
   :key-fn identity
-  :mixins [mx/static mx/reactive]
+  :mixins #{mx/static mx/reactive}
 
   :init
   (fn [own props]
     (let [{:keys [type id]} (::mx/props own)]
       (st/emit! (dc/initialize type id))
-      (assoc own
-             ::coll-ref (-> (l/in [:colors-collections (:id props)])
-                            (l/derive st/state))
-             ::opts-ref (-> (l/in [:dashboard :colors])
-                            (l/derive st/state)))))
+      own))
 
   :render
-  (fn [own props]
-    (let [opts (mx/react (::opts-ref own))
-          coll (mx/react (::coll-ref own))
-          props (merge opts props)]
-      [:main.dashboard-main
-       (messages-widget)
-       (header)
-       [:section.dashboard-content
-        (nav props)
-        (content (assoc props :coll coll))]])))
+  (fn [own {:keys [type] :as props}]
+    (let [type (or type :own)
+          props (assoc props :type type)]
+      [:section.dashboard-content
+       (nav props)
+       (content props)])))
 
 ;; --- Colors Lightbox (Component)
 

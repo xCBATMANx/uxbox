@@ -34,7 +34,7 @@
    :init (fn [own]
                  ;; TODO: maybe do it conditionally
                  ;; (only fetch when it's not fetched)
-                 (when-let [id (-> own ::mx/args first :image)]
+                 (when-let [id (-> own ::mx/props first :image)]
                    (st/emit! (udi/fetch-image id)))
                  own)}
   [own {:keys [id image] :as shape}]

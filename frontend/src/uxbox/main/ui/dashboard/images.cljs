@@ -49,38 +49,23 @@
 
 ;; --- Refs
 
-(def ^:private dashboard-ref
-  (-> (l/in [:dashboard :images])
-      (l/derive st/state)))
-
-(def ^:private collections-ref
+(def collections-ref
   (-> (l/key :images-collections)
       (l/derive st/state)))
 
-(def ^:private images-ref
-  (-> (l/key :images)
+(def opts-ref
+  (-> (l/in [:dashboard :images])
       (l/derive st/state)))
-
-(def ^:private uploading?-ref
-  (-> (l/key :uploading)
-      (l/derive dashboard-ref)))
 
 ;; --- Page Title
 
 (mx/def page-title
   :mixins [(mx/local) mx/reactive]
 
-  :init
-  (fn [own props]
-    (let [{:keys [type id]} (::mx/props own)]
-      (assoc own ::coll-ref (-> (l/in [:images-collections id])
-                                (l/derive st/state)))))
-
   :render
   (fn [{:keys [::mx/local] :as own}
-       {:keys [id type] :as props}]
-    (let [coll (mx/react (::coll-ref own))
-          own? (= :own (:type coll))
+       {:keys [id type] :as coll}]
+    (let [own? (= :own (:type coll))
           edit? (:edit @local)]
       (letfn [(on-save [e]
                 (let [dom (mx/ref-node own "input")
@@ -183,18 +168,11 @@
 (mx/def nav
   :mixins [mx/static mx/reactive]
 
-  :init
-  (fn [own {:keys [type id] :as props}]
-    (assoc own ::collections-ref (-> (l/key :images-collections)
-                                     (l/derive st/state))))
-
   :render
   (fn [own {:keys [id type] :as props}]
-    (let [type (or type :own)
-          own? (= type :own)
+    (let [own? (= type :own)
           builtin? (= type :builtin)
-          colls (mx/react (::collections-ref own))
-          props (assoc props :type type :colls colls)
+          colls (mx/react collections-ref)
           select-tab (fn [type]
                        (if-let [coll (->> (vals colls)
                                           (filter #(= type (:type %)))
@@ -229,42 +207,44 @@
 
 ;; --- Grid
 
-(mx/defcs grid-form
-  {:mixins [mx/static mx/reactive]}
-  [own coll-id]
-  (letfn [(forward-click [event]
-            (dom/click (mx/ref-node own "file-input")))
-          (on-file-selected [event]
-            (let [files (dom/get-event-files event)
-                  files (jscoll->vec files)]
-              (st/emit! (di/create-images coll-id files))))]
-    (let [uploading? (mx/react uploading?-ref)]
+(mx/def grid-form
+  :mixins #{mx/static}
+
+  :init
+  (fn [own props]
+    (assoc own ::file-input (mx/create-ref)))
+
+  :render
+  (fn [own {:keys [id] :as props}]
+    (letfn [(forward-click [event]
+              (dom/click (mx/ref-node (::file-input own))))
+            (on-file-selected [event]
+              (let [files (dom/get-event-files event)
+                    files (jscoll->vec files)]
+                (st/emit! (di/create-images id files))))]
+    (let [uploading? (:uploading props)]
       [:div.grid-item.add-project {:on-click forward-click}
        (if uploading?
-         [:div {} ^:inline i/loader-pencil]
-         [:span {} (tr "ds.image-new")])
+         [:div i/loader-pencil]
+         [:span (tr "ds.image-new")])
        [:input.upload-image-input
         {:style {:display "none"}
          :multiple true
-         :ref "file-input"
+         :ref (::file-input own)
          :value ""
          :accept "image/jpeg,image/png"
          :type "file"
-         :on-change on-file-selected}]])))
+         :on-change on-file-selected}]]))))
 
 (mx/def grid-options-tooltip
   :mixins [mx/reactive mx/static]
-  :init
-  (fn [own props]
-    (assoc own ::collections-ref (-> (l/key :image-collections)
-                                     (l/derive st/state))))
 
   :render
   (fn [own {:keys [selected on-select title]}]
     {:pre [(uuid? selected)
            (fn? on-select)
            (string? title)]}
-    (let [colls (mx/react (::collections-ref own))
+    (let [colls (mx/react collections-ref)
           colls (->> (vals colls)
                      (filter #(= :own (:type %)))
                      (remove #(= selected (:id %)))
@@ -278,7 +258,7 @@
        [:li
         [:a {:href "#" :on-click #(on-select % nil)} "Storage"]]
        (for [{:keys [id name] :as coll} colls]
-         [:li {:key (str id)}
+         [:li {:key (pr-str id)}
           [:a {:on-click #(on-select % id)} name]])])))
 
 (mx/def grid-options
@@ -387,7 +367,7 @@
                                 :on-click on-edit
                                 :default-value (:name image)}]
           [:h3 {:on-double-click on-edit} (:name image)])
-        [:span.date (str (tr "ds.uploaded-at" (dt/format created-at "L")))]]])))
+        [:span.date (str (tr "ds.uploaded-at" (dt/format created-at "DD/MM/YYYY")))]]])))
 
 (mx/def grid
   :mixins [mx/reactive]
@@ -409,34 +389,24 @@
       [:div.dashboard-grid-content
        [:div.dashboard-grid-row
         (when editable?
-          (grid-form id))
+          (grid-form props))
         (for [{:keys [id] :as image} images]
           (let [edition? (= edition id)
                 selected? (contains? selected id)]
             (grid-item (assoc image ::selected? selected? ::edition? edition?))))]])))
 
-(mx/defc content
-  [{:keys [selected] :as props}]
-  [:section.dashboard-grid.library
-   (page-title props)
-   (grid props)
-   (when (seq selected)
-     (grid-options props))])
-
 ;; --- Menu
 
 (mx/def menu
-  :mixins [mx/reactive]
+  :mixins [mx/reactive mx/static]
 
-  :init
-  (fn [own props]
-    (let [{:keys [type id]} (::mx/props own)]
-      (assoc own ::coll-ref (-> (l/in [:images-collections id])
-                                (l/derive st/state)))))
+  ;; :init
+  ;; (fn [own {:keys [id] :as props}]
+  ;;   (assoc own ::num-images-ref (num-images-ref id)))
 
   :render
   (fn [own props]
-    (let [coll (mx/react (::coll-ref own))
+    (let [{:keys [id] :as coll} (::coll props)
           ordering (:order props :name)
           filtering (:filter props "")
           icount (count (:images coll))]
@@ -463,9 +433,7 @@
            [:select.input-select {:on-change on-ordering-change
                                   :value (pr-str ordering)}
             (for [[key value] (seq +ordering-options+)]
-              (let [key (pr-str key)
-                    label (tr value)]
-                [:option {:key key :value key} label]))]]
+              [:option {:key key :value (pr-str key)} (tr value)])]]
 
           ;; Search
           [:form.dashboard-search
@@ -475,7 +443,29 @@
                                :auto-focus true
                                :placeholder (tr "ds.search.placeholder")
                                :value filtering}]
-           [:div.clear-search {:on-click on-clear} i/close]]]]))))
+           [:div.clear-search {:on-click on-clear}
+            i/close]]]]))))
+
+(mx/def content
+  :mixins [mx/reactive mx/static]
+
+  :init
+  (fn [own {:keys [id] :as props}]
+    (assoc own ::coll-ref (-> (l/in [:images-collections id])
+                              (l/derive st/state))))
+
+  :render
+  (fn [own props]
+    (let [opts (mx/react opts-ref)
+          coll (mx/react (::coll-ref own))
+          props (merge opts props)]
+      [:*
+       (menu (assoc props ::coll coll))
+       [:section.dashboard-grid.library
+        (page-title coll)
+        (grid props)
+        (when (seq (:selected opts))
+          (grid-options props))]])))
 
 ;; --- Images Page
 
@@ -487,19 +477,12 @@
   (fn [own props]
     (let [{:keys [type id]} (::mx/props own)]
       (st/emit! (di/initialize type id))
-      (assoc own
-             ::coll-ref (-> (l/in [:images-collections (:id props)])
-                            (l/derive st/state))
-             ::opts-ref (-> (l/in [:dashboard :images])
-                            (l/derive st/state)))))
+      own))
+
   :render
-  (fn [own props]
-    (let [opts (mx/react (::opts-ref own))
-          coll (mx/react (::coll-ref own))
-          props (merge opts props)]
-      [:main.dashboard-main
-       (header)
-       [:section.dashboard-content
-        (nav props)
-        (menu props)
-        (content props)]])))
+  (fn [own {:keys [type] :as props}]
+    (let [type (or type :own)
+          props (assoc props :type type)]
+      [:section.dashboard-content
+       (nav props)
+       (content props)])))

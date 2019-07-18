@@ -186,7 +186,6 @@
     (let [own? (= type :own)
           builtin? (= type :builtin)
           colls (mx/react collections-ref)
-          props (assoc props :type type :colls colls)
           select-tab (fn [type]
                        (if-let [coll (->> (vals colls)
                                           (filter #(= type (:type %)))
@@ -213,10 +212,9 @@
          (for [coll (cond->> (vals colls)
                       own? (filter #(= :own (:type %)))
                       builtin? (filter #(= :builtin (:type %)))
-                      own? (sort-by :name))]
+                      true (sort-by :name))]
            (let [selected? (= (:id coll) id)]
              (nav-item (assoc coll ::selected? selected?))))]]])))
-
 
 ;; --- Grid
 
@@ -261,7 +259,7 @@
        [:li
         [:a {:href "#" :on-click #(on-select % nil)} "Storage"]]
        (for [{:keys [id name] :as coll} colls]
-         [:li {:key (str id)}
+         [:li {:key (pr-str id)}
           [:a {:on-click #(on-select % id)} name]])])))
 
 (mx/def grid-options
@@ -269,71 +267,70 @@
 
   :render
   (fn [{:keys [::mx/local] :as own}
-       {:keys [id type selected ::coll] :as props}]
-    (let [editable? (or (= type :own) (nil? coll))]
-      (letfn [(delete []
-                (st/emit! (di/delete-selected)))
-              (on-delete [event]
-                (udl/open! :confirm {:on-accept delete}))
-              (on-toggle-copy [event]
-                (swap! local update :show-copy-tooltip not))
-              (on-toggle-move [event]
-                (swap! local update :show-move-tooltip not))
-              (on-copy [selected]
-                (swap! local assoc
-                       :show-move-tooltip false
-                       :show-copy-tooltip false)
-                (st/emit! (di/copy-selected selected)))
-              (on-move [selected]
-                (swap! local assoc
-                       :show-move-tooltip false
-                       :show-copy-tooltip false)
-                (st/emit! (di/move-selected selected)))
-              (on-rename [event]
-                (let [selected (first selected)]
-                  (st/emit! (di/update-opts :edition selected))))]
+       {:keys [id type selected] :as props}]
+    (letfn [(delete []
+              (st/emit! (di/delete-selected)))
+            (on-delete [event]
+              (udl/open! :confirm {:on-accept delete}))
+            (on-toggle-copy [event]
+              (swap! local update :show-copy-tooltip not))
+            (on-toggle-move [event]
+              (swap! local update :show-move-tooltip not))
+            (on-copy [selected]
+              (swap! local assoc
+                     :show-move-tooltip false
+                     :show-copy-tooltip false)
+              (st/emit! (di/copy-selected selected)))
+            (on-move [selected]
+              (swap! local assoc
+                     :show-move-tooltip false
+                     :show-copy-tooltip false)
+              (st/emit! (di/move-selected selected)))
+            (on-rename [event]
+              (let [selected (first selected)]
+                (st/emit! (di/update-opts :edition selected))))]
 
-        ;; MULTISELECT OPTIONS BAR
-        [:div.multiselect-bar
-         (if (or (= type :own) (nil? coll))
-           ;; if editable
-           [:div.multiselect-nav {}
+      ;; MULTISELECT OPTIONS BAR
+      [:div.multiselect-bar
+       (if (or (= type :own) (nil? id))
+         ;; if editable
+         [:div.multiselect-nav {}
+          [:span.move-item.tooltip.tooltip-top
+           {:alt (tr "ds.multiselect-bar.copy")
+            :on-click on-toggle-copy}
+           (when (:show-copy-tooltip @local)
+             (grid-options-tooltip {:selected id
+                                    :title (tr "ds.multiselect-bar.copy-to-library")
+                                    :on-select on-copy}))
+           i/copy]
+          [:span.move-item.tooltip.tooltip-top
+           {:alt (tr "ds.multiselect-bar.move")
+            :on-click on-toggle-move}
+           (when (:show-move-tooltip @local)
+             (grid-options-tooltip {:selected id
+                                    :title (tr "ds.multiselect-bar.move-to-library")
+                                    :on-select on-move}))
+           i/move]
+          (when (= 1 (count selected))
             [:span.move-item.tooltip.tooltip-top
-             {:alt (tr "ds.multiselect-bar.copy")
-              :on-click on-toggle-copy}
-             (when (:show-copy-tooltip @local)
-               (grid-options-tooltip {:selected id
-                                      :title (tr "ds.multiselect-bar.copy-to-library")
-                                      :on-select on-copy}))
-             i/copy]
-            [:span.move-item.tooltip.tooltip-top
-             {:alt (tr "ds.multiselect-bar.move")
-              :on-click on-toggle-move}
-             (when (:show-move-tooltip @local)
-               (grid-options-tooltip {:selected id
-                                      :title (tr "ds.multiselect-bar.move-to-library")
-                                      :on-select on-move}))
-             i/move]
-            (when (= 1 (count selected))
-              [:span.move-item.tooltip.tooltip-top
-               {:alt (tr "ds.multiselect-bar.rename")
-                :on-click on-rename}
-               i/pencil])
-            [:span.delete.tooltip.tooltip-top
-             {:alt (tr "ds.multiselect-bar.delete")
-              :on-click on-delete}
-             i/trash]]
+             {:alt (tr "ds.multiselect-bar.rename")
+              :on-click on-rename}
+             i/pencil])
+          [:span.delete.tooltip.tooltip-top
+           {:alt (tr "ds.multiselect-bar.delete")
+            :on-click on-delete}
+           i/trash]]
 
-           ;; if not editable
-           [:div.multiselect-nav
-            [:span.move-item.tooltip.tooltip-top
-             {:alt (tr "ds.multiselect-bar.copy")
-              :on-click on-toggle-copy}
-             (when (:show-copy-tooltip @local)
-               (grid-options-tooltip {:selected id
-                                      :title (tr "ds.multiselect-bar.copy-to-library")
-                                      :on-select on-copy}))
-             i/organize]])]))))
+         ;; if not editable
+         [:div.multiselect-nav
+          [:span.move-item.tooltip.tooltip-top
+           {:alt (tr "ds.multiselect-bar.copy")
+            :on-click on-toggle-copy}
+           (when (:show-copy-tooltip @local)
+             (grid-options-tooltip {:selected id
+                                    :title (tr "ds.multiselect-bar.copy-to-library")
+                                    :on-select on-copy}))
+           i/organize]])])))
 
 (mx/def grid-item
   :key-fn :id
@@ -343,17 +340,14 @@
     (letfn [(toggle-selection [event]
               (prn "toggle-selection")
               (st/emit! (di/toggle-icon-selection id)))
-            #_(toggle-selection-shifted [event]
-              (when (kbd/shift? event)
-                (toggle-selection event)))
+            (on-key-down [event]
+              (when (kbd/enter? event)
+                (on-blur event)))
             (on-blur [event]
               (let [target (dom/event->target event)
                     name (dom/get-value target)]
                 (st/emit! (di/update-opts :edition false)
                           (di/rename-icon id name))))
-            (on-key-down [event]
-              (when (kbd/enter? event)
-                (on-blur event)))
             (ignore-click [event]
               (dom/stop-propagation event)
               (dom/prevent-default event))
@@ -418,7 +412,6 @@
 
   :render
   (fn [own props]
-    (prn "menu$render" props)
     (let [{:keys [id num-icons] :as coll} (::coll props)
           num-icons (or num-icons (mx/react (::num-icons-ref own)))]
       (letfn [(on-term-change [event]
@@ -439,9 +432,8 @@
           ;; Sorting
           [:div
            [:span (tr "ds.ordering")]
-           [:select.input-select
-            {:on-change on-ordering-change
-             :value (pr-str (:order props :name))}
+           [:select.input-select {:on-change on-ordering-change
+                                  :value (pr-str (:order props :name))}
             (for [[key value] (seq +ordering-options+)]
               [:option {:key key :value (pr-str key)} (tr value)])]]
           ;; Search
@@ -474,7 +466,7 @@
         (page-title coll)
         (grid props)
         (when (seq (:selected opts))
-          (grid-options (assoc props ::coll coll)))]])))
+          (grid-options props))]])))
 
 
 ;; --- Icons Page
