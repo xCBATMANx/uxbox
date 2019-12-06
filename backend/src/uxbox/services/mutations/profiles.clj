@@ -19,10 +19,10 @@
    [uxbox.media :as media]
    [uxbox.services.mutations :as sm]
    [uxbox.services.util :as su]
-   [uxbox.services.queries.profiles :refer [get-profile
-                                            decode-profile-row
-                                            strip-private-attrs
-                                            resolve-thumbnail]]
+   [uxbox.services.queries.users :refer [get-profile
+                                         decode-profile-row
+                                         strip-private-attrs
+                                         resolve-thumbnail]]
    [uxbox.util.blob :as blob]
    [uxbox.util.exceptions :as ex]
    [uxbox.util.spec :as us]

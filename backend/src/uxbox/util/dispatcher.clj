@@ -118,5 +118,5 @@
                                 :code :spec-validation
                                 :explain (with-out-str
                                            (expound/printer data))
-                                :data data))))
+                                :data (::s/problems data)))))
                 data)))})

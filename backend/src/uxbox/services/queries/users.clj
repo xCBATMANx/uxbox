@@ -4,7 +4,7 @@
 ;;
 ;; Copyright (c) 2016 Andrey Antukh <niwi@niwi.nz>
 
-(ns uxbox.services.queries.profiles
+(ns uxbox.services.queries.users
   (:require
    [clojure.spec.alpha :as s]
    [promesa.core :as p]

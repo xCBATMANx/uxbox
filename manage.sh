@@ -176,6 +176,10 @@ function log {
     docker-compose -p uxbox -f docker/docker-compose.yml logs -f --tail=50
 }
 
+function log-devenv {
+    docker-compose -p uxbox-devenv -f docker/devenv/docker-compose.yaml logs -f --tail=50
+}
+
 function stop {
     echo "Stoping containers..."
     docker-compose -p uxbox -f ./docker/docker-compose.yml stop
@@ -224,6 +228,9 @@ case $1 in
         ;;
     stop-devenv)
         stop-devenv ${@:2}
+        ;;
+    log-devenv)
+        log-devenv ${@:2}
         ;;
 
     ## testin related commands

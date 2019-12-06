@@ -26,9 +26,6 @@
     {:desc "Initial projects tables"
      :name "0003-projects"
      :fn (mg/resource "migrations/0003.projects.sql")}
-    {:desc "Initial pages tables"
-     :name "0004-pages"
-     :fn (mg/resource "migrations/0004.pages.sql")}
     {:desc "Initial emails related tables"
      :name "0005-emails"
      :fn (mg/resource "migrations/0005.emails.sql")}

@@ -12,7 +12,7 @@
    [uxbox.util.spec :as us]
    [uxbox.services.mutations :as sm]
    [uxbox.services.util :as su]
-   [uxbox.services.queries.pages :refer [decode-row]]
+   [uxbox.services.queries.project-pages :refer [decode-row]]
    [uxbox.util.sql :as sql]
    [uxbox.util.blob :as blob]
    [uxbox.util.uuid :as uuid]))
