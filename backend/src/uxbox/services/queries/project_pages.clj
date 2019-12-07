@@ -41,17 +41,23 @@
   (str "with pages as (" sql:generic-project-pages ")"
        " select * from pages where file_id = $2"))
 
-(defn project-pages-sql
-  [user]
-  (-> (sql/from ["project_pages" "pp"])
-      (sql/join ["project_files" "pf"] "pf.id = pp.file_id")
-      (sql/join ["projects" "p"] "p.id = pf.project_id")
-      (sql/ljoin ["project_users", "pu"] "pu.project_id = p.id")
-      (sql/ljoin ["project_file_users", "pfu"] "pfu.file_id = pf.id")
-      (sql/select "pp.*")
-      (sql/where ["((pfu.user_id = ? and pfu.can_edit = true) or
-                 (pu.user_id = ? and pu.can_edit = true))" user user])
-      (sql/order "pp.created_at")))
+;; (defn project-pages-sql
+;;   [user]
+;;   (-> (sql/from ["project_pages" "pp"])
+;;       (sql/join ["project_files" "pf"] "pf.id = pp.file_id")
+;;       (sql/join ["projects" "p"] "p.id = pf.project_id")
+;;       (sql/ljoin ["project_users", "pu"] "pu.project_id = p.id")
+;;       (sql/ljoin ["project_file_users", "pfu"] "pfu.file_id = pf.id")
+;;       (sql/select "pp.*")
+;;       (sql/where ["((pfu.user_id = ? and pfu.can_edit = true) or
+;;                  (pu.user_id = ? and pu.can_edit = true))" user user])
+;;       (sql/order "pp.created_at")))
+
+;; (let [sql (-> (project-pages-sql user)
+;;               (sql/where ["pp.file_id = ?" file-id])
+;;               (sql/fmt))]
+;;   (-> (db/query db/pool sql)
+;;       (p/then #(mapv decode-row %)))))
 
 (s/def ::project-pages
   (s/keys :req-un [::user ::file-id]))
@@ -59,15 +65,8 @@
 (sq/defquery ::project-pages
   [{:keys [user file-id] :as params}]
   (let [sql sql:project-pages]
-    (prn ::project-pages [sql user file-id])
     (-> (db/query db/pool [sql user file-id])
         (p/then #(mapv decode-row %)))))
-
-  ;; (let [sql (-> (project-pages-sql user)
-  ;;               (sql/where ["pp.file_id = ?" file-id])
-  ;;               (sql/fmt))]
-  ;;   (-> (db/query db/pool sql)
-  ;;       (p/then #(mapv decode-row %)))))
 
 ;; --- Query: Project Page (By ID)
 
@@ -77,9 +76,7 @@
 
 (defn retrieve-page
   [conn {:keys [user id] :as params}]
-  (let [sql (->> (project-pages-sql user)
-                 (sql/where ["pp.id = ?" id])
-                 (sql/fmt))]
+  (let [sql sql:project-page]
     (-> (db/query-one conn [sql user id])
         (p/then' su/raise-not-found-if-nil)
         (p/then' decode-row))))

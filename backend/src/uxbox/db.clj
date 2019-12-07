@@ -34,7 +34,7 @@
 
 (defmacro with-atomic
   [& args]
-  `(pg/with-atomic ~@args))
+  `(pg/with-atomic (p/do! ~@args)))
 
 (def row-xfm
   (comp (map pg/row->map)

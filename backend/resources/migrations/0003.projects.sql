@@ -89,14 +89,14 @@ CREATE TABLE IF NOT EXISTS project_page_history (
 
 CREATE INDEX projects__user_id__idx ON projects(user_id);
 
-CREATE INDEX project_users__user_id__idx ON project_users(project_id);
-CREATE INDEX project_users__project_id__idx ON project_users(user_id);
+-- CREATE INDEX project_users__user_id__idx ON project_users(project_id);
+-- CREATE INDEX project_users__project_id__idx ON project_users(user_id);
 
 CREATE INDEX project_files__user_id__idx ON project_files(user_id);
 CREATE INDEX project_files__project_id__idx ON project_files(project_id);
 
-CREATE INDEX project_file_users__user_id__idx ON project_file_users(user_id);
-CREATE INDEX project_file_users__file_id__idx ON project_file_users(file_id);
+-- CREATE INDEX project_file_users__user_id__idx ON project_file_users(user_id);
+-- CREATE INDEX project_file_users__file_id__idx ON project_file_users(file_id);
 
 CREATE INDEX project_pages__user_id__idx ON project_pages(user_id);
 CREATE INDEX project_pages__file_id__idx ON project_pages(file_id);
