@@ -13,6 +13,7 @@
    [uxbox.services.mutations :as sm]
    [uxbox.services.util :as su]
    [uxbox.util.blob :as blob]
+   [uxbox.util.exceptions :as ex]
    [uxbox.util.uuid :as uuid]))
 
 ;; --- Helpers & Specs
@@ -109,5 +110,5 @@
 (defn delete-project
   [conn {:keys [id user] :as params}]
   (let [sql sql:delete-project]
-    (-> (db/query-one db/pool [sql id user])
+    (-> (db/query-one conn [sql id])
         (p/then' su/constantly-nil))))

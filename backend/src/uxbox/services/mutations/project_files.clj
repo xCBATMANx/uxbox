@@ -13,6 +13,7 @@
    [uxbox.services.mutations :as sm]
    [uxbox.services.mutations.projects :as proj]
    [uxbox.services.util :as su]
+   [uxbox.util.exceptions :as ex]
    [uxbox.util.blob :as blob]
    [uxbox.util.uuid :as uuid]))
 
@@ -50,8 +51,9 @@
 
 (defn check-edition-permissions!
   [conn user file-id]
-  (-> (db/query conn [sql:project-permissions file-id user])
-      (p/then' (comp su/raise-not-found-if-nil seq))
+  (-> (db/query conn [sql:file-permissions user file-id])
+      (p/then' seq)
+      (p/then' su/raise-not-found-if-nil)
       (p/then' (fn [rows]
                  (when-not (some :can-edit rows)
                    (ex/raise :type :validation
@@ -59,62 +61,64 @@
 
 ;; --- Mutation: Create Project
 
-(declare create-project-file)
-(declare create-project-page)
+(declare create-file)
+(declare create-page)
 
 (s/def ::create-project-file
   (s/keys :req-un [::user ::name ::project-id]
           :opt-un [::id]))
 
 (sm/defmutation ::create-project-file
-  [{:keys [project-id] :as params}]
+  [{:keys [user project-id] :as params}]
   (db/with-atomic [conn db/pool]
     (proj/check-edition-permissions! conn user project-id)
-    (-> (create-project-file conn params)
-        (p/then #(create-project-page conn (assoc params :file-id %))))))
+    (p/let [file (create-file conn params)]
+      (create-page conn (assoc params :file-id (:id file)))
+      file)))
 
-(defn- create-project-file
+(defn create-file
   [conn {:keys [id user name project-id] :as params}]
   (let [id (or id (uuid/next))
         sql "insert into project_files (id, user_id, project_id, name)
-             values ($1, $2, $3, $4) returning id"]
-    (-> (db/query-one conn [sql id user project-id name])
-        (p/then' :id))))
+             values ($1, $2, $3, $4) returning *"]
+    (db/query-one conn [sql id user project-id name])))
 
-(defn- create-project-page
+(defn- create-page
   "Creates an initial page for the file."
   [conn {:keys [user file-id] :as params}]
   (let [id  (uuid/next)
         name "Page 1"
-        sql "insert into project_pages (id, user_id, file_id, name)
-             values ($1, $2, $3, $4) returning id"]
-    (db/query-one conn [sql id user file-id name])))
+        data (blob/encode {})
+        sql "insert into project_pages (id, user_id, file_id, name, version,
+                                        ordering, data)
+             values ($1, $2, $3, $4, 0, 1, $5) returning id"]
+    (db/query-one conn [sql id user file-id name data])))
 
 ;; --- Mutation: Update Project
 
-(declare update-project-file)
+(declare update-file)
 
-(s/def ::update-project
+(s/def ::update-project-file
   (s/keys :req-un [::user ::name ::id]))
 
 (sm/defmutation ::update-project-file
   [{:keys [id user] :as params}]
   (db/with-atomic [conn db/pool]
     (check-edition-permissions! conn user id)
-    (update-project-file conn params)))
+    (update-file conn params)))
 
-(defn- update-project-file
+(defn- update-file
   [conn {:keys [id name user] :as params}]
   (let [sql "update project_files
                 set name = $2
               where id = $1
                 and deleted_at is null"]
-    (-> (db/query-one conn [sql id user name])
+    (-> (db/query-one conn [sql id name])
         (p/then' su/constantly-nil))))
 
 ;; --- Mutation: Delete Project
 
-(declare delete-project-file
+(declare delete-file)
 
 (s/def ::delete-project-file
   (s/keys :req-un [::id ::user]))
@@ -123,17 +127,17 @@
   [{:keys [id user] :as params}]
   (db/with-atomic [conn db/pool]
     (check-edition-permissions! conn user id)
-    (delete-project-file conn params)))
+    (delete-file conn params)))
 
-(def ^:private sql:delete-project-file
+(def ^:private sql:delete-file
   "update project_file
       set deleted_at = clock_timestamp()
     where id = $1
       and deleted_at is null
    returning id")
 
-(defn delete-project-file
+(defn delete-file
   [conn {:keys [id user] :as params}]
-  (let [sql sql:delete-project-file]
-    (-> (db/query-one db/pool [sql id user])
+  (let [sql sql:delete-file]
+    (-> (db/query-one conn [sql id user])
         (p/then' su/constantly-nil))))

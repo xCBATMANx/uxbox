@@ -48,15 +48,13 @@
     (-> (db/query-one db/pool [sql id])
         (p/then' decode-profile-row))))
 
-(s/def ::profile
-  (s/keys :req-un [::user]))
+;; (s/def ::profile
+;;   (s/keys :req-un [::user]))
 
-(sq/defquery :profile
-  {:doc "Retrieve the user profile."
-   :spec ::profile}
-  [{:keys [user] :as params}]
-  (-> (get-profile db/pool user)
-      (p/then' strip-private-attrs)))
+;; (sq/defquery ::profile
+;;   [{:keys [user] :as params}]
+;;   (-> (get-profile db/pool user)
+;;       (p/then' strip-private-attrs)))
 
 ;; --- Attrs Helpers
 

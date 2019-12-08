@@ -4,7 +4,7 @@
 ;;
 ;; Copyright (c) 2016 Andrey Antukh <niwi@niwi.nz>
 
-(ns uxbox.services.mutations.profiles
+(ns uxbox.services.mutations.users
   (:require
    [buddy.hashers :as hashers]
    [clojure.spec.alpha :as s]
@@ -83,9 +83,7 @@
 (s/def ::update-profile
   (s/keys :req-un [::id ::username ::email ::fullname ::metadata]))
 
-(sm/defmutation :update-profile
-  {:doc "Update self profile."
-   :spec ::update-profile}
+(sm/defmutation ::update-profile
   [params]
   (db/with-atomic [conn db/pool]
     (-> (p/resolved params)

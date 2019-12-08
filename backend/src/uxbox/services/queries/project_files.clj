@@ -42,6 +42,8 @@
 
 (sq/defquery ::project-files
   [{:keys [user project-id] :as params}]
+  (println sql:project-files)
+  (prn user project-id)
   (-> (db/query db/pool [sql:project-files user project-id])
       (p/then' (partial mapv decode-row))))
 
@@ -51,5 +53,5 @@
   [{:keys [metadata pages] :as row}]
   (when row
     (cond-> row
-      pages (assoc :pages (vec pages))
+      pages (assoc :pages (vec (remove nil? pages)))
       metadata (assoc :metadata (blob/decode metadata)))))

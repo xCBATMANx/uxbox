@@ -36,6 +36,10 @@
     {:status 404
      :body response}))
 
+(defmethod handle-exception :service-error
+  [err req]
+  (handle-exception (.getCause err) req))
+
 (defmethod handle-exception :parse
   [err req]
   {:status 400
